@@ -1,0 +1,14 @@
+# MarginGuard BFCM
+
+A Black Friday / Cyber Monday discount profitability optimizer for e-commerce merchants.
+
+## MVP Features
+- SKU-level profitability analysis
+- Priority SKU discount protection
+- Campaign-level profit simulation
+- Maximum sustainable discount analysis
+- Cumulative profit and break-even visualization
+- CSV upload and export
+
+## Development
+Built with Codex. Initial MVP under development.
