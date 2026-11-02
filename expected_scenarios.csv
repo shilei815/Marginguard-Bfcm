@@ -1,0 +1,8 @@
+﻿scenario,revenue_usd,contribution_profit_usd,contribution_margin,negative_sku_count,profit_floor_usd,floor_pass,priority_constraint_pass,notes
+BASE_NO_DISCOUNTS,316571,46869.33,0.14805,2,0,True,False,synthetic assumptions
+PRIORITY_LOCKED_ONLY,304731.05,35372.74,0.11608,9,27590.74,True,True,synthetic assumptions
+OPTIMIZER_GREEDY,296985.35,27851.66,0.09378,13,27590.74,True,True,synthetic assumptions
+STACK_10PCT_ORDER,267286.82,-985.61,-0.00369,18,27590.74,False,True,synthetic assumptions
+SHIPPING_PLUS_5,296985.35,6001.66,0.02021,16,27590.74,False,True,synthetic assumptions
+RETURN_RATE_PLUS_10PP,296985.35,23095.86,0.07777,13,27590.74,False,True,synthetic assumptions
+INFEASIBLE_PRIORITY,302491.05,33197.7,0.10975,10,44525.86,False,True,INFEASIBLE means locked priority alone cannot meet floor

@@ -1,0 +1,17 @@
+﻿step,SKU,Category,new_discount,profit_usd,margin,profit_floor_breached
+1,ACC-004,Accessories,0.05,35051.73,0.11515,False
+2,ACC-004,Accessories,0.1,34730.71,0.11422,False
+3,ACC-005,Accessories,0.05,34351.44,0.11312,False
+4,ACC-005,Accessories,0.1,33972.17,0.11201,False
+5,ACC-006,Accessories,0.05,33529.98,0.11072,False
+6,ACC-006,Accessories,0.1,33087.78,0.10943,False
+7,ACC-007,Accessories,0.05,32578.01,0.10793,False
+8,ACC-007,Accessories,0.1,32068.23,0.10642,False
+9,ACC-007,Accessories,0.15,31558.46,0.10491,False
+10,HOM-004,Home,0.05,30965.52,0.10315,False
+11,HOM-004,Home,0.1,30372.58,0.10138,False
+12,ACC-008,Accessories,0.05,29790.56,0.09964,False
+13,ACC-008,Accessories,0.1,29208.54,0.09789,False
+14,ACC-008,Accessories,0.15,28626.52,0.09613,False
+15,HOM-005,Home,0.05,28239.09,0.09496,False
+16,HOM-005,Home,0.1,27851.66,0.09378,False

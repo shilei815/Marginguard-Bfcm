@@ -1,0 +1,116 @@
+{
+  "source": "100% synthetic internally generated, NOT market observations",
+  "seed": 2602,
+  "profit_definition": "net sales*(1-payment_fee_rate)-allocated_fixed_fee-COGS-fulfillment-merchant_shipping-extra_shipping_subsidy-(return_rate+shock)*return_cost_per_return",
+  "return_model": "Only incremental per-return costs; no full refund/reverse revenue modeling",
+  "units": "USD; percentage decimals in CSV",
+  "priority_order": "P1 locked first; P2/P3 adjustable; greedy weighted incremental discount / expected contribution loss",
+  "fixed_volume_caveat": "All scenarios hold expected units constant and do NOT predict demand lift",
+  "profit_floor_usd": 27590.74,
+  "base_metrics": {
+    "revenue_usd": 316571,
+    "contribution_profit_usd": 46869.33,
+    "contribution_margin": 0.14805,
+    "negative_sku_count": 2
+  },
+  "priority_locked_metrics": {
+    "revenue_usd": 304731.05,
+    "contribution_profit_usd": 35372.74,
+    "contribution_margin": 0.11608,
+    "negative_sku_count": 9
+  },
+  "optimized_metrics": {
+    "revenue_usd": 296985.35,
+    "contribution_profit_usd": 27851.66,
+    "contribution_margin": 0.09378,
+    "negative_sku_count": 13
+  },
+  "test_expectations": [
+    {
+      "scenario": "BASE_NO_DISCOUNTS",
+      "revenue_usd": 316571,
+      "contribution_profit_usd": 46869.33,
+      "contribution_margin": 0.14805,
+      "negative_sku_count": 2,
+      "profit_floor_usd": 0,
+      "floor_pass": true,
+      "priority_constraint_pass": false,
+      "notes": "synthetic assumptions"
+    },
+    {
+      "scenario": "PRIORITY_LOCKED_ONLY",
+      "revenue_usd": 304731.05,
+      "contribution_profit_usd": 35372.74,
+      "contribution_margin": 0.11608,
+      "negative_sku_count": 9,
+      "profit_floor_usd": 27590.74,
+      "floor_pass": true,
+      "priority_constraint_pass": true,
+      "notes": "synthetic assumptions"
+    },
+    {
+      "scenario": "OPTIMIZER_GREEDY",
+      "revenue_usd": 296985.35,
+      "contribution_profit_usd": 27851.66,
+      "contribution_margin": 0.09378,
+      "negative_sku_count": 13,
+      "profit_floor_usd": 27590.74,
+      "floor_pass": true,
+      "priority_constraint_pass": true,
+      "notes": "synthetic assumptions"
+    },
+    {
+      "scenario": "STACK_10PCT_ORDER",
+      "revenue_usd": 267286.82,
+      "contribution_profit_usd": -985.61,
+      "contribution_margin": -0.00369,
+      "negative_sku_count": 18,
+      "profit_floor_usd": 27590.74,
+      "floor_pass": false,
+      "priority_constraint_pass": true,
+      "notes": "synthetic assumptions"
+    },
+    {
+      "scenario": "SHIPPING_PLUS_5",
+      "revenue_usd": 296985.35,
+      "contribution_profit_usd": 6001.66,
+      "contribution_margin": 0.02021,
+      "negative_sku_count": 16,
+      "profit_floor_usd": 27590.74,
+      "floor_pass": false,
+      "priority_constraint_pass": true,
+      "notes": "synthetic assumptions"
+    },
+    {
+      "scenario": "RETURN_RATE_PLUS_10PP",
+      "revenue_usd": 296985.35,
+      "contribution_profit_usd": 23095.86,
+      "contribution_margin": 0.07777,
+      "negative_sku_count": 13,
+      "profit_floor_usd": 27590.74,
+      "floor_pass": false,
+      "priority_constraint_pass": true,
+      "notes": "synthetic assumptions"
+    },
+    {
+      "scenario": "INFEASIBLE_PRIORITY",
+      "revenue_usd": 302491.05,
+      "contribution_profit_usd": 33197.7,
+      "contribution_margin": 0.10975,
+      "negative_sku_count": 10,
+      "profit_floor_usd": 44525.86,
+      "floor_pass": false,
+      "priority_constraint_pass": true,
+      "notes": "INFEASIBLE means locked priority alone cannot meet floor"
+    }
+  ],
+  "first_frontier_breach": {
+    "step": 8,
+    "SKU": "HOM-005",
+    "Category": "Home",
+    "priority": "P2",
+    "cumulative_profit_usd": 27153.71,
+    "portfolio_margin": 0.09165,
+    "below_profit_floor": true
+  }
+}
