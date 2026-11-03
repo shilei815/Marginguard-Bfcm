@@ -7,6 +7,7 @@ import {
   DisplayNumberInput,
   WarningSummary,
   DiagnosticSummary,
+  CheckoutDiscountNotice,
 } from "./presentation";
 import TierControls, { TierSummary } from "./TierControls";
 import {
@@ -1197,6 +1198,7 @@ export default function App() {
                   New uploads use 50% of positive baseline contribution as the
                   editable floor. Allocation must meet floor plus safety buffer.
                 </p>
+                <CheckoutDiscountNotice />
                 {mode === "manual" ? (
                   <>
                     <div className="range-heading">

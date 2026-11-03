@@ -28,6 +28,7 @@ import {
   DisplayNumberInput,
   WarningSummary,
   DiagnosticSummary,
+  CheckoutDiscountNotice,
 } from "./presentation";
 const percent = (n: number) => (n * 100).toFixed(1) + "%";
 export function Amount({
@@ -847,6 +848,7 @@ export default function MerchantView(p: MerchantProps) {
             Required offers may lower profit if your current plan does not honor
             them. No extra sales are assumed.
           </p>
+          <CheckoutDiscountNotice />
           {show && (
             <div className="suggestion" aria-live="polite">
               {!recommendation.feasible ? (

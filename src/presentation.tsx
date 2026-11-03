@@ -53,6 +53,17 @@ export function DisplayNumberInput({
     />
   );
 }
+// Release disclosure only: never round or rewrite the underlying discount vector.
+export function CheckoutDiscountNotice() {
+  return (
+    <p className="caption">
+      Displayed percentages are rounded; recommendations and CSV exports retain
+      full precision. Rounding checkout discounts can break minimum, maximum or
+      exact offers and put profit below your goal plus safety buffer. Re-enter
+      the actual checkout discounts and check all warnings before launch.
+    </p>
+  );
+}
 export function presentWarnings(warnings: PlanWarning[], skus: SKU[]) {
   const ids = new Map(skus.map((s) => [s.id, s]));
   return warnings.map((w) => {

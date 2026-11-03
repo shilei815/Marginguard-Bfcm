@@ -612,6 +612,53 @@ try {
   report.checks.push(
     "Real browser tier assignment export, native import under changed defaults and recommendation export preserve resolved offers.",
   );
+  // Beta release audit: real key events and browser accessibility tree.
+  const key = async (key, code, windowsVirtualKeyCode, modifiers = 0) => {
+    await page("Input.dispatchKeyEvent", { type: "keyDown", key, code, windowsVirtualKeyCode, modifiers, ...(key === "Enter" ? { text: "\r" } : {}) });
+    await page("Input.dispatchKeyEvent", { type: "keyUp", key, code, windowsVirtualKeyCode, modifiers });
+    await frame();
+  };
+  await load(375);
+  await evaluate("document.querySelector('.step-nav a').focus()");
+  await key("Tab", "Tab", 9);
+  assert(await evaluate("document.activeElement.getAttribute('href') === '#step-2'"));
+  await key("Tab", "Tab", 9, 8);
+  assert(await evaluate("document.activeElement.getAttribute('href') === '#step-1'"));
+  await evaluate("document.querySelector('#step-3 .warning-summary > summary').focus()");
+  await key(" ", "Space", 32);
+  assert(await evaluate("document.querySelector('#step-3 .warning-summary').open"));
+  await evaluate("document.querySelector('.improve').focus()");
+  await key("Enter", "Enter", 13);
+  assert(await evaluate("!!document.querySelector('.suggestion')"));
+  assert(await evaluate("document.querySelector('#step-4').textContent.includes('Rounding checkout discounts can break')"));
+  await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Use Suggested Plan').focus()");
+  await key("Enter", "Enter", 13);
+  assert(await evaluate("!document.querySelector('.suggestion') && document.body.textContent.includes('Profitable Plan')"));
+  await fit(375, "Simple", "beta-keyboard-recommendation-and-warning");
+  await button("Advanced Mode");
+  await button("Optimize");
+  const range = 'input[aria-label="Explore product discount steps"]';
+  const previousStep = await evaluate(`Number(document.querySelector('${range}').value)`);
+  await evaluate(`document.querySelector('${range}').focus()`);
+  await key("ArrowRight", "ArrowRight", 39);
+  assert.equal(await evaluate(`Number(document.querySelector('${range}').value)`), previousStep + 1);
+  assert(await evaluate("document.body.textContent.includes('How Much More Can You Discount?') && document.body.textContent.includes('Rounding checkout discounts can break')"));
+  await evaluate("document.querySelector('.chart-panel summary').focus()");
+  await key("Enter", "Enter", 13);
+  assert(await evaluate("document.querySelector('.chart-panel details').open"));
+  await fit(375, "Advanced", "beta-keyboard-chart-and-methodology");
+  const ax = await page("Accessibility.getFullAXTree");
+  const controls = ax.nodes.filter(n => !n.ignored && ['button', 'link', 'textbox', 'spinbutton', 'slider', 'combobox', 'checkbox'].includes(n.role?.value));
+  report.accessibility = {
+    inspectedNamedControls: controls.length,
+    unnamedControls: controls.filter(n => !n.name?.value).map(n => n.role.value),
+    scope: "Chromium AX semantics and sampled keyboard navigation only; no screen reader or WCAG certification.",
+  };
+  assert.deepEqual(report.accessibility.unnamedControls, []);
+  await evaluate("document.querySelector('.chart-panel').scrollIntoView()");
+  await screenshot("beta-chart-375", false);
+  report.captionStyle = await evaluate("(()=>{const e=document.querySelector('.chart-panel .caption'),s=getComputedStyle(e);return {color:s.color,fontSize:s.fontSize,panelBackground:getComputedStyle(e.closest('.panel')).backgroundColor}})()");
+  report.checks.push("Beta keyboard: Tab/Shift+Tab workflow links, Space warning disclosure, Enter suggestion/apply/methodology and ArrowRight chart scrubber passed; sampled AX controls have names. Checkout-rounding disclosures are present in both modes.");
   assert.deepEqual(report.runtimeErrors, []);
   assert.deepEqual(report.externalRequests, []);
   await call("Target.closeTarget", { targetId });
