@@ -1,4 +1,8 @@
-# Phase 1 validation report
+# Current Phase 2B verification
+
+88 automated unit/UI tests and the TypeScript/Vite build pass. The 71 earlier regressions remain unchanged. An optional production-build Chromium harness passes 55 layout/state checks at 320, 375, 390, 430, 768 and 1440px, with no document/body horizontal overflow, runtime errors, or external page requests in tested states. Native synthetic CSV uploads, long/conflicting labels, menu navigation, identical-plan handling and export precision are exercised. Sample desktop/mobile screenshots were inspected. See [Phase 2B report and limits](PHASE_2B.md); older sections below record the verification available in earlier phases.
+
+## Historical Phase 1 validation report
 
 ## Automated checks
 
@@ -38,7 +42,7 @@ No demand model, discrete optimization, tax/multi-currency, overhead, full retur
 
 ## Phase 2A validation
 
-Current Phase 2A run: **71 tests pass across four suites** (the 37 Phase 1 regressions plus 34 new policy/UI tests). `npm run build` passes strict TypeScript and Vite static production compilation. Phase 1 UI assertions are preserved with an explicit Advanced Mode setup; financial regression tests, `engine.ts`, `csv.ts`, and all eight original fixtures are unchanged.
+Phase 2A run at `445d78d`: **71 tests pass across four suites** (the 37 Phase 1 regressions plus 34 new policy/UI tests). `npm run build` passes strict TypeScript and Vite static production compilation. Phase 1 UI assertions are preserved with an explicit Advanced Mode setup; financial regression tests, `engine.ts`, `csv.ts`, and all eight original fixtures are unchanged.
 
 Uniform 20% synthetic regression: $253,256.80 revenue, approximately −$14,608.76 contribution, 22 negative-contribution products. These values are computed from the original dataset, not inserted into application output.
 

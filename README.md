@@ -1,8 +1,8 @@
-# MarginGuard BFCM — Phase 2A
+# MarginGuard BFCM — Phase 2B
 
 A browser-only discount planning tool for small e-commerce merchants, built with React, TypeScript, and Vite. Simple Mode is the default; Advanced Mode retains Phase 1 financial analysis and continuous optimization. Both views share the same campaign state and unchanged financial calculation engine.
 
-No backend, database, account, analytics, merchant-data API, or external runtime assets. Uploaded financial data remains in browser memory and is lost on refresh. Existing Cloudflare Pages settings and the `phase-1-browser-planner` production branch are unchanged. Phase 2A is developed on `phase-2a-merchant-ux`; no deployment or merge is performed.
+No backend, database, account, analytics, merchant-data API, or external runtime assets. Uploaded financial data remains in browser memory and is lost on refresh. Existing Cloudflare Pages settings and the `phase-1-browser-planner` production branch are unchanged. Phase 2B is developed on `phase-2b-ux-polish` from `phase-2a-merchant-ux`; no deployment or merge is performed.
 
 ## Run and verify locally
 
@@ -20,7 +20,15 @@ npm test
 npm run build
 ```
 
-`dist/` is static production output. No service credentials or environment variables are needed. See [Phase 2A product rules and QA](docs/PHASE_2A.md), [release notes](docs/RELEASE_NOTES.md), and the [financial model](docs/FINANCIAL_MODEL.md).
+`dist/` is static production output. No service credentials or environment variables are needed. See [Phase 2B UX changes and browser QA](docs/PHASE_2B.md), [Phase 2A product rules](docs/PHASE_2A.md), [release notes](docs/RELEASE_NOTES.md), and the [financial model](docs/FINANCIAL_MODEL.md).
+
+Optional real-browser verification after building (requires an installed Chromium):
+
+```sh
+npm run test:browser
+```
+
+See `docs/PHASE_2B.md` for browser executable selection, container sandbox requirements, generated reports and verification limits. The test harness uses a temporary loopback server only; the application remains static and browser-only.
 
 ## A quick merchant workflow
 
@@ -54,7 +62,7 @@ Imports are limited to 5 MB / 10,000 rows. Export uses local browser Blob downlo
 
 Advanced Mode retains gross/contribution profit, margins, per-SKU financial analysis, editable allocation weights, stress inputs, scenario snapshots, original ordered cumulative frontier, and exact continuous objectives. Simple Mode's recommendation uses a separate explicit policy to reduce discretionary discounts; it does not claim to maximize future sales or economic profit. The advanced optimizer retains its original weighted-discount or contribution-profit objectives, with custom hard rules adapted into bounds before calling the unchanged engine.
 
-Fixed demand only; no elasticity, demand lift, checkout integration, tax, fixed overhead, multi-currency, full returned-sale refund accounting, or saved campaigns. One representative single-SKU order per unit. Loss-making products can remain in an overall safe campaign. Preferred discounts may be missed. Continuous fractions are supported; discrete `Step_Discount` remains reference-only. Real-browser visual/accessibility QA was unavailable; jsdom tests cover interactions, not rendered layout.
+Fixed demand only; no elasticity, demand lift, checkout integration, tax, fixed overhead, multi-currency, full returned-sale refund accounting, or saved campaigns. One representative single-SKU order per unit. Loss-making products can remain in an overall safe campaign. Preferred discounts may be missed. Continuous fractions are supported; discrete `Step_Discount` remains reference-only. Phase 2B adds 55 real Chromium layout/state checks at six viewport sizes and sample screenshot inspection. Physical devices, Firefox/Safari, assistive technology, and touch/virtual-keyboard behavior remain unverified.
 
 ## Source layout
 
@@ -62,6 +70,8 @@ Fixed demand only; no elasticity, demand lift, checkout integration, tax, fixed 
 - `src/planner.ts`: new rule adapter, recommendation policy, statuses, warnings, extended list parser, defaults, and chart path.
 - `src/App.tsx`: shared campaign state and Advanced dashboard.
 - `src/MerchantView.tsx`: Simple workflow and shared rule management.
-- `src/*.test.ts*`: original regressions plus Phase 2A policy and UI tests.
+- `src/presentation.tsx`: display-only currency/input formatting and grouped warning/diagnostic presentation.
+- `src/*.test.ts*`: original regressions plus Phase 2A policy and Phase 2B UX tests.
+- `scripts/browser-qa.mjs`: optional real Chromium checks against the production build.
 - `docs/`: methodology, initial audit, validation, Phase 2A product rules, release notes.
 - Original eight root fixture files: preserved byte-for-byte and SHA-256 checked by tests. `public/demo-skus.csv` remains a data copy.

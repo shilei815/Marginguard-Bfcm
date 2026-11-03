@@ -1258,3 +1258,299 @@ footer {
     font-size: 25px;
   }
 }
+/* Phase 2B: intrinsic sizing fixes keep overflow inside tables, not the page. */
+.app,
+.merchant-shell {
+  width: 100%;
+  min-width: 0;
+}
+.app .content,
+.app .results,
+.app .controls,
+.app .workspace-grid > *,
+.panel,
+.two-fields > *,
+.heading > *,
+.topbar > *,
+.priority-row > * {
+  min-width: 0;
+}
+.app .workspace-grid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+}
+.two-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.table-scroll {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+.field,
+input,
+select {
+  max-width: 100%;
+}
+.panel p,
+.notice,
+summary,
+.priority-row,
+.data-strip small,
+.chart-foot,
+footer {
+  overflow-wrap: anywhere;
+}
+.card {
+  min-width: 0;
+  overflow: visible;
+}
+.card strong {
+  overflow-wrap: anywhere;
+}
+.frontier,
+.simple-chart svg {
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+}
+.merchant-shell .simple-chart svg {
+  min-width: 0;
+  min-height: 0;
+}
+.simple-chart {
+  overflow: visible;
+}
+.chart-endpoints {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  font-size: 12px;
+  margin: 10px 0;
+}
+.unchanged-plan p {
+  margin-top: 12px;
+}
+.unchanged-plan .success-message {
+  color: #226b45;
+  font-weight: 600;
+}
+.affected-count {
+  display: inline !important;
+  font-size: inherit !important;
+}
+.diagnostic-summary > p {
+  margin-top: 8px;
+  color: inherit;
+}
+.diagnostic-summary .warning-summary {
+  margin: 12px 0 0;
+  background: #fff9f5;
+  max-height: 300px;
+}
+.warning-summary p,
+.warning-summary li {
+  white-space: normal;
+}
+.merchant-shell #step-2,
+.merchant-shell #step-4 {
+  margin: 16px 0 20px;
+}
+.merchant-shell #step-2 > .field,
+.merchant-shell #step-4 > .field {
+  max-width: 440px;
+}
+.merchant-shell #step-4 > .improve {
+  max-width: 440px;
+}
+.merchant-shell #step-3 {
+  margin: 18px 0;
+}
+.mobile-nav-toggle,
+.mobile-navigation {
+  display: none;
+}
+@media (min-width: 1001px) and (max-width: 1200px) {
+  .app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 270px);
+  }
+}
+@media (max-width: 1000px) {
+  .app {
+    display: block;
+  }
+  .app .sidebar {
+    display: none;
+  }
+  .app > main {
+    width: 100%;
+    margin-left: 0;
+  }
+  .app .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .app .controls {
+    grid-row: 1;
+  }
+  .app .controls .panel {
+    margin-bottom: 18px;
+  }
+  .app .mobile-nav-toggle {
+    display: inline-flex;
+  }
+  .app .mobile-navigation:not([hidden]) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 12px 18px;
+    background: #fff;
+    border-bottom: 1px solid #dfe6e0;
+  }
+  .app .mobile-navigation a {
+    display: block;
+    background: #edf4ef;
+    color: #315e49;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .app .topbar {
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 18px;
+  }
+  .app .workspace-crumb {
+    display: none;
+  }
+  .app .topbar .badge {
+    display: none;
+  }
+  .app .heading,
+  .app .panel-heading,
+  .app .section-title,
+  .app .data-strip,
+  .app .actions,
+  .app .snapshot,
+  .app .priority-row {
+    flex-wrap: wrap;
+  }
+  .app .content {
+    width: 100%;
+    padding: 22px 16px 0;
+  }
+  .app button,
+  .app .button,
+  .merchant-shell button,
+  .merchant-shell .button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+    max-width: 100%;
+    min-height: 40px;
+  }
+  .app .field,
+  .app .checkbox {
+    font-size: 12px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .app .field input,
+  .app .field select {
+    font-size: 16px;
+    min-height: 42px;
+  }
+  .app .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .app .card strong {
+    font-size: 25px;
+  }
+  .app .caption,
+  .app .chart-foot {
+    font-size: 12px;
+  }
+  .app .chart-foot {
+    flex-wrap: wrap;
+  }
+  .app .pagination,
+  .app .snapshot,
+  .merchant-shell .pagination {
+    flex-wrap: wrap;
+  }
+  .app .category-chart {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+  .app .category-chart span {
+    grid-column: 2;
+    text-align: left;
+  }
+  .app .method-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .merchant-shell .data-strip,
+  .merchant-shell .data-strip .actions {
+    flex-wrap: wrap;
+  }
+  .merchant-shell .step-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .merchant-shell .step-nav a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .merchant-shell .topbar .actions {
+    min-width: 0;
+  }
+  .merchant-shell .bulk-controls > *,
+  .app .snapshot > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+@media (max-width: 360px) {
+  .app .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .merchant-cards .card strong {
+    font-size: 22px;
+  }
+  .merchant-shell .topbar {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .merchant-shell .section-title {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+/* Imported product identifiers and category labels may be unbroken strings. */
+.field,
+.checkbox {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.product-selector {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.product-selector .checkbox {
+  max-width: 100%;
+}
+.checkbox input[type="checkbox"] {
+  flex-shrink: 0;
+}
+.category-chart b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .app .legend {
+    display: inline-flex;
+    white-space: normal;
+    flex-wrap: wrap;
+    font-size: 11px;
+  }
+}
