@@ -7,6 +7,13 @@ import {
   planWarnings,
   type PromotionRule,
 } from "./planner";
+import {
+  usd as money,
+  wholeUSD,
+  DisplayNumberInput,
+  WarningSummary,
+  DiagnosticSummary,
+} from "./presentation";
 import demo from "../sku_master.csv?raw";
 import {
   portfolio,
@@ -28,12 +35,6 @@ import {
   exportCSV,
 } from "./csv";
 const initial = parseSKUs(demo);
-const money = (n: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(n);
 const pct = (n: number | null) =>
   n === null ? "—" : `${(n * 100).toFixed(1)}%`;
 function NumberField({
@@ -54,17 +55,15 @@ function NumberField({
   return (
     <label className="field">
       {label}
-      <input
-        type="number"
+      <DisplayNumberInput
         value={value}
+        digits={label.includes("USD") ? 2 : 6}
         min={min}
         max={max}
         step={step}
-        onChange={(e) => {
-          const n = e.target.valueAsNumber;
-          if (Number.isFinite(n))
-            onChange(Math.max(min, Math.min(max ?? Infinity, n)));
-        }}
+        onValueChange={(n) =>
+          onChange(Math.max(min, Math.min(max ?? Infinity, n)))
+        }
       />
     </label>
   );
@@ -196,6 +195,7 @@ export default function App() {
     [warnings, setWarnings] = useState(initial.warnings),
     [error, setError] = useState("");
   const [advanced, setAdvanced] = useState(false),
+    [mobileNavOpen, setMobileNavOpen] = useState(false),
     [buffer, setBuffer] = useState(0),
     [dataVersion, setDataVersion] = useState(0);
   const [mode, setMode] = useState<"manual" | "optimized">("manual"),
@@ -232,13 +232,7 @@ export default function App() {
             ? opt.discounts
             : scenario(skus, uniform, categories, overrides),
         current = portfolio(skus, ds, a),
-        issues = planWarnings(skus, ds, priorities, floor, buffer, a)
-          .filter(
-            (w) =>
-              w.kind !== "Product losing money" &&
-              w.kind !== "Preferred target",
-          )
-          .map((w) => `${w.id ?? w.category}: ${w.message}`);
+        issues = planWarnings(skus, ds, priorities, floor, buffer, a);
       return { baseline, opt, ds, current, issues, error: "" };
     } catch (e) {
       return { error: (e as Error).message };
@@ -449,14 +443,56 @@ export default function App() {
       </aside>
       <main>
         <header className="topbar">
-          <button onClick={() => setAdvanced(false)}>Simple Mode</button>
-          <span>
+          <div className="actions">
+            <button
+              onClick={() => {
+                setAdvanced(false);
+                setMobileNavOpen(false);
+              }}
+            >
+              Simple Mode
+            </button>
+            <button
+              className="mobile-nav-toggle"
+              aria-expanded={mobileNavOpen}
+              aria-controls="advanced-mobile-navigation"
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            >
+              Navigation
+            </button>
+          </div>
+          <span className="workspace-crumb">
             Workspace <span className="slash">/</span> BFCM planning
           </span>
           <span className="badge">
-            PHASE 2A <span>·</span> BROWSER ONLY
+            PHASE 2B <span>·</span> BROWSER ONLY
           </span>
         </header>
+        <nav
+          className="mobile-navigation"
+          id="advanced-mobile-navigation"
+          aria-label="Advanced mobile navigation"
+          hidden={!mobileNavOpen}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setMobileNavOpen(false);
+              document
+                .querySelector<HTMLButtonElement>(".mobile-nav-toggle")
+                ?.focus();
+            }
+          }}
+        >
+          {[
+            ["overview", "Campaign planner"],
+            ["sku-table", "SKU profitability"],
+            ["comparison", "Scenario comparison"],
+            ["method", "Model & assumptions"],
+          ].map(([id, label]) => (
+            <a key={id} href={"#" + id} onClick={() => setMobileNavOpen(false)}>
+              {label}
+            </a>
+          ))}
+        </nav>
         <div className="content">
           <section className="heading" id="overview">
             <div>
@@ -554,7 +590,7 @@ export default function App() {
                         key={label}
                       >
                         <span>{label}</span>
-                        <strong>{money(value as number)}</strong>
+                        <strong>{wholeUSD(value as number)}</strong>
                         <small>{detail}</small>
                         <div className="card-delta">
                           {money((value as number) - (base as number))}{" "}
@@ -576,36 +612,30 @@ export default function App() {
                       SKUs have negative contribution profit.
                     </span>
                   </div>
-                  {calculated.issues!.length > 0 && (
-                    <details className="notice danger" open>
+                  <WarningSummary
+                    warnings={calculated.issues ?? []}
+                    skus={skus}
+                  />
+                  {mode === "optimized" && opt && !opt.feasible && (
+                    <DiagnosticSummary
+                      title="Optimization infeasible — required-discount diagnostic shown"
+                      errors={opt.errors}
+                      skus={skus}
+                    />
+                  )}
+                  {mode === "optimized" && !!opt?.preferredWarnings.length && (
+                    <details className="notice">
                       <summary>
-                        {calculated.issues!.length} scenario constraint
-                        warning(s)
+                        {opt.preferredWarnings.length} preferred-discount
+                        diagnostics
                       </summary>
                       <ul>
-                        {calculated.issues!.map((s, i) => (
-                          <li key={i}>{s}</li>
+                        {opt.preferredWarnings.map((message, i) => (
+                          <li key={i}>{message}</li>
                         ))}
                       </ul>
                     </details>
                   )}
-                  {mode === "optimized" && opt && !opt.feasible && (
-                    <div role="alert" className="notice danger">
-                      <b>
-                        Optimization infeasible — required-discount diagnostic
-                        shown
-                      </b>
-                      {opt.errors.map((s) => (
-                        <p key={s}>{s}</p>
-                      ))}
-                    </div>
-                  )}
-                  {mode === "optimized" &&
-                    opt?.preferredWarnings.map((s) => (
-                      <div className="notice" key={s}>
-                        {s}
-                      </div>
-                    ))}
                   <section className="panel chart-panel">
                     <div className="panel-heading">
                       <div>
@@ -821,17 +851,6 @@ export default function App() {
                                   </td>
                                   <td>{l.units}</td>
                                   <td>
-                                    <NumberField
-                                      label="Additional Safety Buffer (USD)"
-                                      value={buffer}
-                                      onChange={setBuffer}
-                                    />
-                                    <p className="caption">
-                                      New uploads use 50% of positive baseline
-                                      contribution as the editable floor.
-                                      Allocation must meet floor plus safety
-                                      buffer.
-                                    </p>
                                     {mode === "manual" ? (
                                       <input
                                         className="discount-input"
@@ -1028,6 +1047,15 @@ export default function App() {
                   min={-1e12}
                   step={100}
                 />
+                <NumberField
+                  label="Additional Safety Buffer (USD)"
+                  value={buffer}
+                  onChange={setBuffer}
+                />
+                <p className="caption">
+                  New uploads use 50% of positive baseline contribution as the
+                  editable floor. Allocation must meet floor plus safety buffer.
+                </p>
                 {mode === "manual" ? (
                   <>
                     <div className="range-heading">
@@ -1314,7 +1342,7 @@ export default function App() {
           </section>
           <footer>
             MarginGuard BFCM{" "}
-            <span>Built for better discount decisions. · Phase 2A</span>
+            <span>Built for better discount decisions. · Phase 2B</span>
           </footer>
         </div>
       </main>

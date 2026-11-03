@@ -10,18 +10,18 @@ import {
   improvePlan,
   profitStatus,
   planWarnings,
-  groupWarnings,
   adjustmentPath,
   promotionTemplate,
   type PromotionRule,
 } from "./planner";
 import { download, exportCSV, template } from "./csv";
-export const money = (n: number) =>
-  new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(n);
+import {
+  usd as money,
+  wholeUSD,
+  DisplayNumberInput,
+  WarningSummary,
+  DiagnosticSummary,
+} from "./presentation";
 const percent = (n: number) => (n * 100).toFixed(1) + "%";
 export function Amount({
   label,
@@ -39,17 +39,15 @@ export function Amount({
   return (
     <label className="field">
       {label}
-      <input
-        type="number"
-        value={+value.toFixed(8)}
+      <DisplayNumberInput
+        value={value}
+        digits={label.includes("USD") ? 2 : 6}
         min={min}
         max={max}
         step="any"
-        onChange={(e) => {
-          const n = e.target.valueAsNumber;
-          if (Number.isFinite(n))
-            onChange(Math.max(min, Math.min(max ?? Number.MAX_VALUE, n)));
-        }}
+        onValueChange={(n) =>
+          onChange(Math.max(min, Math.min(max ?? Number.MAX_VALUE, n)))
+        }
       />
     </label>
   );
@@ -240,6 +238,7 @@ export function ProfitChart({
   a,
   goal,
   buffer,
+  rules = [],
 }: {
   skus: SKU[];
   current: Discounts;
@@ -247,6 +246,7 @@ export function ProfitChart({
   a: Assumptions;
   goal: number;
   buffer: number;
+  rules?: PromotionRule[];
 }) {
   if (!suggested)
     return (
@@ -260,6 +260,62 @@ export function ProfitChart({
     );
   const path = adjustmentPath(skus, current, suggested, a, goal, buffer),
     { start, end } = path;
+  const currentFinancials = portfolio(skus, current, a),
+    suggestedFinancials = portfolio(skus, suggested, a);
+  const sameDiscounts = skus.every(
+    (s) =>
+      Math.abs(
+        (discountFor(current, s.id) ?? 0) - (discountFor(suggested, s.id) ?? 0),
+      ) <= 1e-9,
+  );
+  const sameFinancials = (["revenue", "gross", "contribution"] as const).every(
+    (k) => Math.abs(currentFinancials[k] - suggestedFinancials[k]) <= 1e-7,
+  );
+  const hardIssues = planWarnings(skus, current, rules, goal, buffer, a).filter(
+    (w) =>
+      w.kind !== "Product losing money" &&
+      w.kind !== "Preferred target" &&
+      w.kind !== "Missing costs or input assumptions",
+  );
+  if (sameDiscounts && sameFinancials) {
+    return (
+      <section className="panel unchanged-plan">
+        <h2>How Discounts Affect Your Profit</h2>
+        {hardIssues.length === 0 ? (
+          <>
+            <p className="success-message">
+              Your current discount plan already meets your profit goal. No
+              changes are needed.
+            </p>
+            <p>
+              Current profit after variable costs: <b>{money(start.profit)}</b>{" "}
+              · Minimum profit goal: <b>{money(goal)}</b>
+              {buffer > 0 && (
+                <>
+                  {" "}
+                  · Additional safety buffer: <b>{money(buffer)}</b> · Goal plus
+                  buffer: <b>{money(goal + buffer)}</b>
+                </>
+              )}
+            </p>
+          </>
+        ) : (
+          <>
+            <p>
+              These plans have the same discounts and financial results, but
+              unresolved discount rules or your profit goal still need
+              attention.
+            </p>
+            <p>
+              Current profit: {money(start.profit)} · Goal plus buffer:{" "}
+              {money(goal + buffer)}
+            </p>
+            <WarningSummary warnings={hardIssues} skus={skus} />
+          </>
+        )}
+      </section>
+    );
+  }
   const lo = Math.min(0, start.profit, end.profit, goal),
     hi = Math.max(1, start.profit, end.profit, goal + buffer),
     span = Math.max(1, hi - lo),
@@ -310,6 +366,10 @@ export function ProfitChart({
           { ...end, label: "Suggested Plan" },
         ].map((p, i) => (
           <g key={p.label}>
+            <title>
+              {p.label}: {percent(p.discount)} overall discount,{" "}
+              {money(p.profit)} profit after variable costs
+            </title>
             <circle
               cx={x(p.discount)}
               cy={y(p.profit)}
@@ -349,6 +409,14 @@ export function ProfitChart({
           Overall Discount · weighted by base-price expected sales
         </text>
       </svg>
+      <div className="chart-endpoints">
+        <span>
+          Current Plan: <b>{money(start.profit)}</b>
+        </span>
+        <span>
+          Suggested Plan: <b>{money(end.profit)}</b>
+        </span>
+      </div>
       <div className="chart-foot">
         <span>Minimum Profit Goal: {money(goal)}</span>
         {buffer > 0 && (
@@ -413,8 +481,8 @@ export default function MerchantView(p: MerchantProps) {
       buffer,
       a,
       p.warnings,
-    ),
-    groups = groupWarnings(warnings);
+    );
+
   const [show, setShow] = useState(false),
     [query, setQuery] = useState(""),
     [lossOnly, setLossOnly] = useState(false),
@@ -542,6 +610,104 @@ export default function MerchantView(p: MerchantProps) {
             Could not load or update your plan: {p.error}
           </div>
         )}
+        <section className="panel" id="step-2">
+          <h2>2. Set Discounts</h2>
+          <>
+            {p.allocationActive && (
+              <div className="notice">
+                An Advanced Mode allocation is active. Product discounts below
+                show the current offers; changing the storewide discount starts
+                a manual plan.
+              </div>
+            )}
+          </>
+          <Amount
+            label="Storewide discount (%)"
+            value={p.uniform * 100}
+            max={100}
+            onChange={(n) => p.onUniform(n / 100)}
+          />
+          <p className="caption">
+            Special product offers override category offers, which override
+            storewide discounts.{" "}
+            <button className="text-button" onClick={p.onClear}>
+              Clear special offers
+            </button>
+          </p>
+          <details>
+            <summary>Different discounts by category</summary>
+            {cats.map((cat) => (
+              <label className="field" key={cat}>
+                {cat} discount (%)
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="any"
+                  placeholder="Use storewide"
+                  value={
+                    discountFor(p.categories, cat) === undefined
+                      ? ""
+                      : discountFor(p.categories, cat)! * 100
+                  }
+                  onChange={(e) => {
+                    if (e.target.value === "") p.onCategory(cat, undefined);
+                    else if (Number.isFinite(e.target.valueAsNumber))
+                      p.onCategory(
+                        cat,
+                        Math.max(0, Math.min(1, e.target.valueAsNumber / 100)),
+                      );
+                  }}
+                />
+              </label>
+            ))}
+          </details>
+          <RuleEditor
+            skus={skus}
+            rules={rules}
+            onChange={p.onRules}
+            onUpload={(f) => p.onUpload(f, true)}
+          />
+          <details>
+            <summary>Rules already in your product file</summary>
+            <p className="caption">
+              File minimum and maximum discounts always apply to
+              recommendations. P1 is a file rule locking the offer at the
+              required minimum; marking another product must-promote does not
+              make it P1.
+            </p>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Minimum</th>
+                    <th>Maximum</th>
+                    <th>File rule</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {skus
+                    .filter(
+                      (s) => s.min > 0 || s.max < 1 || s.priority === "P1",
+                    )
+                    .map((s) => (
+                      <tr key={s.id}>
+                        <td>{s.id}</td>
+                        <td>{percent(s.min)}</td>
+                        <td>{percent(s.max)}</td>
+                        <td>
+                          {s.priority === "P1"
+                            ? "Locked required offer"
+                            : "Adjustable"}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </section>
         <section id="step-3" aria-label="Check Profit">
           <div className="section-title">
             <h2>3. Check Profit</h2>
@@ -553,11 +719,11 @@ export default function MerchantView(p: MerchantProps) {
           </div>
           <div className="cards merchant-cards">
             {[
-              ["Expected Sales", money(current.revenue)],
-              ["Profit After Variable Costs", money(current.contribution)],
+              ["Expected Sales", wholeUSD(current.revenue)],
+              ["Profit After Variable Costs", wholeUSD(current.contribution)],
               [
                 "Change in Profit",
-                money(current.contribution - baseline.contribution),
+                wholeUSD(current.contribution - baseline.contribution),
               ],
               ["Products Losing Money", String(current.negative)],
             ].map(([label, value]) => (
@@ -602,288 +768,151 @@ export default function MerchantView(p: MerchantProps) {
               {current.contribution >= goal + buffer - 1e-7 ? "Yes" : "No"}
             </span>
           </div>
-          {warnings.length > 0 && (
-            <details className="notice warning-summary">
-              <summary>
-                {warnings.length} discount rules or profit warnings need
-                attention.
-              </summary>
-              {[...groups].map(([kind, categories]) => (
-                <details key={kind}>
-                  <summary>
-                    {kind} ·{" "}
-                    {[...categories.values()].reduce(
-                      (t, rows) => t + rows.length,
-                      0,
-                    )}
-                  </summary>
-                  {[...categories].map(([cat, rows]) => (
-                    <details key={cat}>
-                      <summary>
-                        {cat} · {rows.length}
-                      </summary>
-                      <ul>
-                        {rows.map((w, i) => (
-                          <li key={i}>
-                            {w.id && <b>{w.id}: </b>}
-                            {w.message}
-                          </li>
-                        ))}
-                      </ul>
-                    </details>
-                  ))}
-                </details>
-              ))}
-            </details>
-          )}
+          <WarningSummary warnings={warnings} skus={skus} />
         </section>
-        <div className="merchant-grid">
-          <section className="panel" id="step-2">
-            <h2>2. Set Discounts</h2>
-            <>
-              {p.allocationActive && (
-                <div className="notice">
-                  An Advanced Mode allocation is active. Product discounts below
-                  show the current offers; changing the storewide discount
-                  starts a manual plan.
-                </div>
-              )}
-            </>
-            <Amount
-              label="Storewide discount (%)"
-              value={p.uniform * 100}
-              max={100}
-              onChange={(n) => p.onUniform(n / 100)}
-            />
-            <p className="caption">
-              Special product offers override category offers, which override
-              storewide discounts.{" "}
-              <button className="text-button" onClick={p.onClear}>
-                Clear special offers
-              </button>
-            </p>
-            <details>
-              <summary>Different discounts by category</summary>
-              {cats.map((cat) => (
-                <label className="field" key={cat}>
-                  {cat} discount (%)
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="any"
-                    placeholder="Use storewide"
-                    value={
-                      discountFor(p.categories, cat) === undefined
-                        ? ""
-                        : discountFor(p.categories, cat)! * 100
-                    }
-                    onChange={(e) => {
-                      if (e.target.value === "") p.onCategory(cat, undefined);
-                      else if (Number.isFinite(e.target.valueAsNumber))
-                        p.onCategory(
-                          cat,
-                          Math.max(
-                            0,
-                            Math.min(1, e.target.valueAsNumber / 100),
-                          ),
-                        );
-                    }}
-                  />
-                </label>
-              ))}
-            </details>
-            <RuleEditor
-              skus={skus}
-              rules={rules}
-              onChange={p.onRules}
-              onUpload={(f) => p.onUpload(f, true)}
-            />
-            <details>
-              <summary>Rules already in your product file</summary>
-              <p className="caption">
-                File minimum and maximum discounts always apply to
-                recommendations. P1 is a file rule locking the offer at the
-                required minimum; marking another product must-promote does not
-                make it P1.
-              </p>
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>Minimum</th>
-                      <th>Maximum</th>
-                      <th>File rule</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {skus
-                      .filter(
-                        (s) => s.min > 0 || s.max < 1 || s.priority === "P1",
-                      )
-                      .map((s) => (
-                        <tr key={s.id}>
-                          <td>{s.id}</td>
-                          <td>{percent(s.min)}</td>
-                          <td>{percent(s.max)}</td>
-                          <td>
-                            {s.priority === "P1"
-                              ? "Locked required offer"
-                              : "Adjustable"}
-                          </td>
+        <section className="panel" id="step-4">
+          <h2>4. Improve My Plan</h2>
+          <Amount
+            label="Minimum Profit to Keep (USD)"
+            value={goal}
+            onChange={p.onGoal}
+          />
+          <p className="caption">
+            New product uploads start at 50% of positive no-discount profit, or
+            $0 if that profit is negative. This is an editable planning starting
+            point, not a guarantee. Baseline profit:{" "}
+            {money(baseline.contribution)}.
+          </p>
+          <Amount
+            label="Additional Safety Buffer (USD)"
+            value={buffer}
+            onChange={p.onBuffer}
+          />
+          <p className="caption">
+            Recommendations must keep at least {money(goal + buffer)}: your
+            minimum goal plus this extra cushion. The buffer is not a modeled
+            cost.
+          </p>
+          {(a.stack !== 0 || a.shipping !== 0 || a.returns !== 0) && (
+            <div className="notice">
+              Extra costs or discounts from Advanced Mode are active: order
+              discount {percent(a.stack)}, shipping {money(a.shipping)} per
+              unit, return increase {percent(a.returns)}. Switch modes to edit
+              them.
+            </div>
+          )}
+          <button
+            className="primary full improve"
+            onClick={() => setShow(true)}
+          >
+            Improve My Plan
+          </button>
+          <p className="caption">
+            We keep required offers, correct offers outside your rules, then
+            reduce discretionary discounts only as much as needed. Ordinary
+            products change first; must-promote products and preferred offers
+            are protected longer. Required offers may lower profit if your
+            current plan does not honor them. No extra sales are assumed.
+          </p>
+          {show && (
+            <div className="suggestion" aria-live="polite">
+              {!recommendation.feasible ? (
+                <DiagnosticSummary
+                  title="Your Discount Goals Can't All Be Met"
+                  errors={recommendation.errors}
+                  skus={skus}
+                />
+              ) : (
+                <>
+                  <h3>Current Plan → Suggested Plan</h3>
+                  <div className="table-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Measure</th>
+                          <th>Current Plan</th>
+                          <th>Suggested Plan</th>
                         </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </details>
-          </section>
-          <section className="panel" id="step-4">
-            <h2>4. Improve My Plan</h2>
-            <Amount
-              label="Minimum Profit to Keep (USD)"
-              value={goal}
-              onChange={p.onGoal}
-            />
-            <p className="caption">
-              New product uploads start at 50% of positive no-discount profit,
-              or $0 if that profit is negative. This is an editable planning
-              starting point, not a guarantee. Baseline profit:{" "}
-              {money(baseline.contribution)}.
-            </p>
-            <Amount
-              label="Additional Safety Buffer (USD)"
-              value={buffer}
-              onChange={p.onBuffer}
-            />
-            <p className="caption">
-              Recommendations must keep at least {money(goal + buffer)}: your
-              minimum goal plus this extra cushion. The buffer is not a modeled
-              cost.
-            </p>
-            {(a.stack !== 0 || a.shipping !== 0 || a.returns !== 0) && (
-              <div className="notice">
-                Extra costs or discounts from Advanced Mode are active: order
-                discount {percent(a.stack)}, shipping {money(a.shipping)} per
-                unit, return increase {percent(a.returns)}. Switch modes to edit
-                them.
-              </div>
-            )}
-            <button
-              className="primary full improve"
-              onClick={() => setShow(true)}
-            >
-              Improve My Plan
-            </button>
-            <p className="caption">
-              We keep required offers, correct offers outside your rules, then
-              reduce discretionary discounts only as much as needed. Ordinary
-              products change first; must-promote products and preferred offers
-              are protected longer. Required offers may lower profit if your
-              current plan does not honor them. No extra sales are assumed.
-            </p>
-            {show && (
-              <div className="suggestion" aria-live="polite">
-                {!recommendation.feasible ? (
-                  <div role="alert" className="notice danger">
-                    <b>Your Discount Goals Can't All Be Met</b>
-                    {recommendation.errors.map((e) => (
-                      <p key={e}>{e}</p>
-                    ))}
-                  </div>
-                ) : (
-                  <>
-                    <h3>Current Plan → Suggested Plan</h3>
-                    <div className="table-scroll">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Measure</th>
-                            <th>Current Plan</th>
-                            <th>Suggested Plan</th>
+                      </thead>
+                      <tbody>
+                        {[
+                          [
+                            "Expected Sales",
+                            current.revenue,
+                            suggestion!.revenue,
+                          ],
+                          [
+                            "Profit After Variable Costs",
+                            current.contribution,
+                            suggestion!.contribution,
+                          ],
+                          [
+                            "Change in Profit",
+                            current.contribution - baseline.contribution,
+                            suggestion!.contribution - baseline.contribution,
+                          ],
+                          [
+                            "Products Losing Money",
+                            current.negative,
+                            suggestion!.negative,
+                          ],
+                        ].map(([label, before, after]) => (
+                          <tr key={label}>
+                            <td>{label}</td>
+                            <td>
+                              {label === "Products Losing Money"
+                                ? before
+                                : money(before as number)}
+                            </td>
+                            <td>
+                              {label === "Products Losing Money"
+                                ? after
+                                : money(after as number)}
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {[
-                            [
-                              "Expected Sales",
-                              current.revenue,
-                              suggestion!.revenue,
-                            ],
-                            [
-                              "Profit After Variable Costs",
-                              current.contribution,
-                              suggestion!.contribution,
-                            ],
-                            [
-                              "Change in Profit",
-                              current.contribution - baseline.contribution,
-                              suggestion!.contribution - baseline.contribution,
-                            ],
-                            [
-                              "Products Losing Money",
-                              current.negative,
-                              suggestion!.negative,
-                            ],
-                          ].map(([label, before, after]) => (
-                            <tr key={label}>
-                              <td>{label}</td>
-                              <td>
-                                {label === "Products Losing Money"
-                                  ? before
-                                  : money(before as number)}
-                              </td>
-                              <td>
-                                {label === "Products Losing Money"
-                                  ? after
-                                  : money(after as number)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <p className="caption">
-                      Suggested profit changes by{" "}
-                      {money(suggestion!.contribution - current.contribution)}{" "}
-                      versus the current plan. {recommendation.changes.length}{" "}
-                      product discount changes required. Goal plus buffer: met.
-                    </p>
-                    <details>
-                      <summary>Review discount changes</summary>
-                      {recommendation.changes.map((c) => (
-                        <p key={c.id}>
-                          {c.id}: {percent(c.before)} → {percent(c.after)}
-                        </p>
-                      ))}
-                      {!recommendation.changes.length && (
-                        <p>
-                          Your current plan already meets all hard rules and the
-                          goal.
-                        </p>
-                      )}
-                    </details>
-                    {recommendation.preferredWarnings.map((w) => (
-                      <p className="caption" key={w}>
-                        {w}
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="caption">
+                    Suggested profit changes by{" "}
+                    {money(suggestion!.contribution - current.contribution)}{" "}
+                    versus the current plan. {recommendation.changes.length}{" "}
+                    product discount changes required. Goal plus buffer: met.
+                  </p>
+                  <details>
+                    <summary>Review discount changes</summary>
+                    {recommendation.changes.map((c) => (
+                      <p key={c.id}>
+                        {c.id}: {percent(c.before)} → {percent(c.after)}
                       </p>
                     ))}
-                    <button
-                      className="secondary full"
-                      onClick={() => {
-                        p.onApply(recommendation.discounts!);
-                        setShow(false);
-                      }}
-                    >
-                      Use Suggested Plan
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </section>
-        </div>
+                    {!recommendation.changes.length && (
+                      <p>
+                        Your current plan already meets all hard rules and the
+                        goal.
+                      </p>
+                    )}
+                  </details>
+                  {recommendation.preferredWarnings.map((w) => (
+                    <p className="caption" key={w}>
+                      {w}
+                    </p>
+                  ))}
+                  <button
+                    className="secondary full"
+                    onClick={() => {
+                      p.onApply(recommendation.discounts!);
+                      setShow(false);
+                    }}
+                  >
+                    Use Suggested Plan
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </section>
         <ProfitChart
           skus={skus}
           current={discounts}
@@ -891,6 +920,7 @@ export default function MerchantView(p: MerchantProps) {
           a={a}
           goal={goal}
           buffer={buffer}
+          rules={rules}
         />
         <section className="panel">
           <div className="panel-heading">

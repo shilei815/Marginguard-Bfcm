@@ -1,3 +1,14 @@
+# Phase 2B release notes
+
+- Corrected the actual four-step workflow order on desktop and mobile.
+- Fixed Advanced page overflow with shrinking grids, wrapping controls, internal table scrolling and a usable mobile navigation menu. Charts scale to their containers.
+- Replaced the empty chart for unchanged safe plans with a clear profit/goal message; hard-rule violations never receive an all-clear.
+- Added consistent USD cents and display-only input rounding without changing saved precision or CSV values.
+- Added unique affected-product counts, grouped expandable diagnostics, and a primary explanation for infeasible goals.
+- Moved the repeated campaign safety-buffer control from SKU rows to one place in Scenario Builder.
+- Preserved all financial calculations, recommendation/optimization policies, CSV contracts, original fixtures and production settings.
+- Verified 88 unit/UI tests, production build, and 55 headless Chromium layout/state checks across six widths. Physical-device and assistive-technology QA remain outside this verification.
+
 # Phase 2A release notes
 
 - Simple Mode now opens by default with Upload Products → Set Discounts → Check Profit → Improve My Plan.
