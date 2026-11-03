@@ -12,7 +12,9 @@ import {
   promotionTemplate,
   type PromotionRule,
 } from "./planner";
-import { download, exportCSV, template } from "./csv";
+import { download, exportCSV } from "./csv";
+import ImportSection from "./ImportSection";
+import { costQuality, type ImportedCampaign } from "./unifiedImport";
 import TierControls, { TierSummary } from "./TierControls";
 import {
   emptyTiers,
@@ -63,8 +65,10 @@ export function RuleEditor({
   onChange,
   onUpload,
   title,
+  showImportTools = true,
 }: {
   title?: string;
+  showImportTools?: boolean;
   skus: SKU[];
   rules: PromotionRule[];
   onChange: (rules: PromotionRule[]) => void;
@@ -166,32 +170,36 @@ export function RuleEditor({
       >
         Apply rule to {selected.length} selected products
       </button>
-      <div className="actions priority-actions">
-        <label className="button secondary">
-          Upload list
-          <input
-            aria-label="Upload must-promote CSV"
-            type="file"
-            accept=".csv,text/csv"
-            onChange={(e) => {
-              onUpload(e.target.files?.[0]);
-              e.target.value = "";
-            }}
-          />
-        </label>
-        <button
-          className="text-button"
-          onClick={() =>
-            download("must-promote-template.csv", promotionTemplate)
-          }
-        >
-          Download list template
-        </button>
-      </div>
-      <p className="caption">
-        Upload replaces custom rules. Product-file rules still apply.
-        Percentages in CSV use decimals: 0.2 = 20%.
-      </p>
+      {showImportTools && (
+        <>
+          <div className="actions priority-actions">
+            <label className="button secondary">
+              Upload list
+              <input
+                aria-label="Upload must-promote CSV"
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(e) => {
+                  onUpload(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            <button
+              className="text-button"
+              onClick={() =>
+                download("marginguard-rule-template.csv", promotionTemplate)
+              }
+            >
+              Download list template
+            </button>
+          </div>
+          <p className="caption">
+            Upload replaces custom rules. Product-file rules still apply.
+            Percentages in CSV use decimals: 0.2 = 20%.
+          </p>
+        </>
+      )}
       <div className="commitment-list">
         {rules.map((r) => (
           <div className="priority-row" key={r.id}>
@@ -247,6 +255,7 @@ export function ProfitChart({
   buffer,
   rules = [],
   tiers = emptyTiers(),
+  costsComplete = true,
 }: {
   skus: SKU[];
   current: Discounts;
@@ -256,6 +265,7 @@ export function ProfitChart({
   buffer: number;
   rules?: PromotionRule[];
   tiers?: TierState;
+  costsComplete?: boolean;
 }) {
   if (!suggested)
     return (
@@ -301,8 +311,9 @@ export function ProfitChart({
         {hardIssues.length === 0 ? (
           <>
             <p className="success-message">
-              Your current discount plan already meets your profit goal. No
-              changes are needed.
+              {costsComplete
+                ? "Your current discount plan already meets your profit goal. No changes are needed."
+                : "Under the zero-cost assumptions, this plan meets the modeled goal. Confirm missing costs before relying on it."}
             </p>
             <p>
               Current profit after variable costs: <b>{money(start.profit)}</b>{" "}
@@ -477,6 +488,10 @@ export interface MerchantProps {
   allocationActive: boolean;
   onToggle: () => void;
   onUpload: (f: File | undefined, priority?: boolean) => void;
+  campaign: ImportedCampaign;
+  onTierUpload: (f: File | undefined) => void;
+  onConfirmCosts: (confirmed: boolean) => void;
+  importNotice: string;
   onDemo: () => void;
   onUniform: (n: number) => void;
   onCategory: (name: string, n: number | undefined) => void;
@@ -520,6 +535,7 @@ export default function MerchantView(p: MerchantProps) {
   const suggestion = recommendation.discounts
     ? portfolio(skus, recommendation.discounts, a)
     : null;
+  const quality = costQuality(p.campaign.costs, p.campaign.costsConfirmed);
   const status = profitStatus(current.contribution, goal, buffer),
     cats = [...new Set(skus.map((s) => s.category))].sort(),
     filtered = current.lines.filter(
@@ -547,6 +563,16 @@ export default function MerchantView(p: MerchantProps) {
           Safety_Buffer: buffer,
           Suggestion_Feasible: recommendation.feasible,
           Fixed_Volume: true,
+          Costs_Complete: costQuality(
+            p.campaign.costs,
+            p.campaign.costsConfirmed,
+          ).complete,
+          Cost_Assumptions:
+            quality.missing === 0
+              ? "All modeled variable-cost inputs supplied"
+              : p.campaign.costsConfirmed
+                ? "Omitted costs explicitly confirmed zero"
+                : "Omitted variable costs treated as zero; see input report",
         })),
       ),
     );
@@ -554,7 +580,7 @@ export default function MerchantView(p: MerchantProps) {
     <div className="merchant-shell">
       <header className="topbar">
         <a className="merchant-brand" href="#">
-          ◈ MarginGuard <small>BFCM</small>
+          ◈ MarginGuard
         </a>
         <div className="actions">
           <span className="badge">BROWSER ONLY</span>
@@ -564,11 +590,11 @@ export default function MerchantView(p: MerchantProps) {
       <main className="merchant-main">
         <div className="heading">
           <div>
-            <div className="eyebrow">YOUR BFCM DISCOUNT PLAN</div>
-            <h1>Make every discount count.</h1>
+            <div className="eyebrow">YOUR DISCOUNT PLAN</div>
+            <h1>Plan Smarter Discounts. Protect Your Profit.</h1>
             <p>
-              Check your offers, protect must-promote products, and keep more
-              profit.
+              See how your promotions affect profit, protect important products,
+              and find better discount plans.
             </p>
           </div>
         </div>
@@ -584,60 +610,16 @@ export default function MerchantView(p: MerchantProps) {
             </a>
           ))}
         </nav>
-        <section id="step-1" className="data-strip">
-          <div>
-            <span className="data-icon">1</span>
-            <div>
-              <h2>Upload Products</h2>
-              <small>
-                {p.source} · {skus.length} products loaded
-              </small>
-            </div>
-          </div>
-          <div className="actions">
-            <button className="text-button" onClick={p.onDemo}>
-              Load demo
-            </button>
-            <button
-              className="secondary"
-              onClick={() => download("product-template.csv", template)}
-            >
-              Download CSV template
-            </button>
-            <label className="button primary">
-              Upload products
-              <input
-                aria-label="Upload products CSV"
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(e) => {
-                  p.onUpload(e.target.files?.[0]);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          </div>
-        </section>
-        <details className="csv-help">
-          <summary>What product data do I need?</summary>
-          <p>
-            Use our template with a product code (SKU), selling price, cost per
-            unit, inventory, and expected units sold during the campaign. Add
-            payment, shipping, fulfillment, and return costs to get a more
-            complete profit estimate. Use decimal percentages in CSV files: 0.2
-            means 20%. Maximum 5 MB and 10,000 products. Uploading products
-            starts a fresh campaign: offers reset to 10%, custom commitments,
-            tier settings, and extra stress costs clear, and your goal is
-            recalculated with a $0 buffer. Missing optional costs are counted as
-            zero and flagged for review; they are never estimated for you. Field
-            mapping is not available yet: rename columns to match the template.
-          </p>
-        </details>
-        {p.error && (
-          <div role="alert" className="notice danger">
-            Could not load or update your plan: {p.error}
-          </div>
-        )}
+        <ImportSection
+          campaign={p.campaign}
+          source={p.source}
+          error={p.error}
+          notice={p.importNotice}
+          onUpload={p.onUpload}
+          onTierUpload={p.onTierUpload}
+          onDemo={p.onDemo}
+          onConfirmCosts={p.onConfirmCosts}
+        />
         <section className="panel" id="step-2">
           <h2>2. Set Discounts</h2>
           <>
@@ -695,8 +677,10 @@ export default function MerchantView(p: MerchantProps) {
             rules={rules}
             state={p.tiers}
             onChange={p.onTiers}
+            showImportTools={false}
           />
           <RuleEditor
+            showImportTools={false}
             title="Exact offers and additional hard rules"
             skus={skus}
             rules={rules}
@@ -747,11 +731,20 @@ export default function MerchantView(p: MerchantProps) {
           <div className="section-title">
             <h2>3. Check Profit</h2>
             <span
-              className={`plan-status ${status === "Losing Money" ? "bad" : status === "Profit Goal at Risk" ? "risk" : "good"}`}
+              className={`plan-status ${status === "Losing Money" ? "bad" : status === "Profit Goal at Risk" || !quality.complete ? "risk" : "good"}`}
             >
-              {status}
+              {status === "Profitable Plan" && !quality.complete
+                ? "Estimated goal met — costs incomplete"
+                : status}
             </span>
           </div>
+          {!quality.complete && (
+            <p className="notice" role="note">
+              Some Costs Missing. Estimated profit may be overstated because
+              unconfirmed operating costs are counted as zero. Review cost
+              inputs in Upload Products.
+            </p>
+          )}
           <div className="cards merchant-cards">
             {[
               ["Expected Sales", wholeUSD(current.revenue)],
@@ -786,14 +779,16 @@ export default function MerchantView(p: MerchantProps) {
             compares with no discounts and no extra stress costs.
           </p>
           <div
-            className={`notice ${status === "Losing Money" ? "danger" : status === "Profitable Plan" ? "success" : ""}`}
+            className={`notice ${status === "Losing Money" ? "danger" : status === "Profitable Plan" && quality.complete ? "success" : ""}`}
           >
             <b>
               {status === "Losing Money"
                 ? "This discount plan would lose money under your current sales assumptions."
                 : status === "Profit Goal at Risk"
                   ? "Your plan is positive or break-even, but does not keep your profit goal plus buffer."
-                  : "Your plan keeps your minimum profit goal and safety buffer."}
+                  : quality.complete
+                    ? "Your plan keeps your minimum profit goal and safety buffer."
+                    : "The model meets the goal using zero for unconfirmed costs. Confirm those costs before relying on this estimate."}
             </b>
             <span>
               Minimum profit goal {money(goal)} · Additional buffer{" "}
@@ -917,6 +912,8 @@ export default function MerchantView(p: MerchantProps) {
                     {money(suggestion!.contribution - current.contribution)}{" "}
                     versus the current plan. {recommendation.changes.length}{" "}
                     product discount changes required. Goal plus buffer: met.
+                    {!quality.complete &&
+                      " This modeled result uses zero for unconfirmed costs. Confirm actual operating costs before relying on it."}
                   </p>
                   <details>
                     <summary>Review discount changes</summary>
@@ -960,6 +957,7 @@ export default function MerchantView(p: MerchantProps) {
           goal={goal}
           buffer={buffer}
           a={a}
+          costsComplete={quality.complete}
         />
         <ProfitChart
           skus={skus}
@@ -970,6 +968,7 @@ export default function MerchantView(p: MerchantProps) {
           buffer={buffer}
           rules={rules}
           tiers={p.tiers}
+          costsComplete={quality.complete}
         />
         <section className="panel">
           <div className="panel-heading">
@@ -979,7 +978,9 @@ export default function MerchantView(p: MerchantProps) {
                 Adjust offers individually or in bulk. The legacy Must-Promote
                 checkbox creates a hard minimum at the current offer. Merchant
                 tiers are separate, soft protection preferences; manage them
-                under Protect Your Important Products.
+                under Protect Your Important Products. Unchecking removes that
+                product’s custom minimum, exact and preferred rules; use the
+                detailed rule editor to change just one rule.
               </p>
             </div>
             <button className="secondary" onClick={out}>
@@ -1077,7 +1078,7 @@ export default function MerchantView(p: MerchantProps) {
                   <th>Discount (%)</th>
                   <th>Expected Sales</th>
                   <th>Profit After Variable Costs</th>
-                  <th>Explicit minimum commitment</th>
+                  <th>Custom product rules</th>
                 </tr>
               </thead>
               <tbody>
@@ -1161,7 +1162,7 @@ export default function MerchantView(p: MerchantProps) {
           </div>
         </section>
         <footer>
-          MarginGuard BFCM{" "}
+          MarginGuard{" "}
           <span>
             Your data stays in this browser. No financial data is sent to a
             server.

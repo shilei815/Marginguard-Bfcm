@@ -37,6 +37,7 @@ export interface TierControlsProps {
   state: TierState;
   onChange: (state: TierState) => void;
   advanced?: boolean;
+  showImportTools?: boolean;
 }
 export default function TierControls({
   skus,
@@ -44,6 +45,7 @@ export default function TierControls({
   state,
   onChange,
   advanced = false,
+  showImportTools = true,
 }: TierControlsProps) {
   const [selected, setSelected] = useState<string[]>([]),
     [search, setSearch] = useState(""),
@@ -322,29 +324,35 @@ export default function TierControls({
           )}
         </details>
         <div className="actions tier-file-actions">
-          <label className="button secondary">
-            Upload tier CSV
-            <input
-              aria-label="Upload tier CSV"
-              type="file"
-              accept=".csv,text/csv"
-              onChange={(e) => {
-                void upload(e.target.files?.[0]);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          <button
-            className="text-button"
-            onClick={() => download("tier-template.csv", tierTemplate)}
-          >
-            Download tier CSV template
-          </button>
+          {showImportTools && (
+            <>
+              <label className="button secondary">
+                Upload tier CSV
+                <input
+                  aria-label="Upload tier CSV"
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={(e) => {
+                    void upload(e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <button
+                className="text-button"
+                onClick={() =>
+                  download("marginguard-tier-template.csv", tierTemplate)
+                }
+              >
+                Download tier CSV template
+              </button>
+            </>
+          )}
           <button
             className="secondary"
             disabled={!assigned}
             onClick={() =>
-              download("tier-assignments.csv", exportTierCSV(state))
+              download("marginguard-tier-assignments.csv", exportTierCSV(state))
             }
           >
             Export tier assignments
@@ -482,6 +490,7 @@ export function TierSummary({
   goal,
   buffer,
   a,
+  costsComplete = true,
 }: {
   skus: SKU[];
   current: Discounts;
@@ -491,6 +500,7 @@ export function TierSummary({
   goal: number;
   buffer: number;
   a: Assumptions;
+  costsComplete?: boolean;
 }) {
   if (!Object.keys(state.assignments).length) return null;
   if (
@@ -523,7 +533,7 @@ export function TierSummary({
     const currentLines = new Map(portfolioFor(skus, current, a)),
       nextLines = suggested ? new Map(portfolioFor(skus, suggested, a)) : null;
     download(
-      "tier-recommendations.csv",
+      "marginguard-tier-recommendations.csv",
       exportCSV(
         report.products.map((p) => ({
           SKU: p.id,
@@ -544,6 +554,7 @@ export function TierSummary({
           Minimum_Profit_Goal: goal,
           Safety_Buffer: buffer,
           Suggestion_Feasible: !!suggested && report.goalMet,
+          Costs_Complete: costsComplete,
           Reason: p.reason,
         })),
       ),
@@ -553,16 +564,27 @@ export function TierSummary({
     <section className="tier-report" aria-label="Product protection summary">
       <p className="eyebrow">
         {suggested
-          ? "SUGGESTED PLAN · VERIFIED RECOMMENDATION"
+          ? costsComplete
+            ? "SUGGESTED PLAN · VERIFIED RECOMMENDATION"
+            : "MODELED SUGGESTION · SOME COSTS MISSING"
           : "NO VERIFIED SUGGESTION"}
       </p>
       <h3>
         {allMet
-          ? "Your Important Products Are Protected"
+          ? costsComplete
+            ? "Your Important Products Are Protected"
+            : "Estimated Product Protection — Confirm Missing Costs"
           : suggested
             ? "Some Promotional Targets Need to Change"
             : "Product Protection Needs Review"}
       </h3>
+      {!costsComplete && (
+        <p className="caption loss">
+          Estimated profit may be overstated: omitted variable costs are zero in
+          this calculation. Numerical rule checks do not confirm missing
+          operating costs.
+        </p>
+      )}
       <p className="caption">
         These are proposed outcomes, not the current plan. Use Improve My Plan
         in Simple Mode to review and apply a suggestion.

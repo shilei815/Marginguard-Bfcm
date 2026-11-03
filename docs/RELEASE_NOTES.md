@@ -1,3 +1,13 @@
+# Phase 2D release notes — MarginGuard
+
+- Rebranded the main interface, headline, browser metadata and download names for year-round promotion planning. Historical fixtures, phase documentation, repository and deployment identities are unchanged.
+- One primary Upload Products workflow now prepares products, merchant tiers, hard/soft SKU rules, planned offers, cost-presence metadata and initial goal before committing a new campaign.
+- Added the exact Simple product schema and a full Advanced template retaining legacy financial fields. Five-column uploads work; invalid required fields, rates, tier/rule conflicts, malformed files and stale uploads cannot partially replace campaign data.
+- Added Cost Data Complete / Some Costs Missing, explicit zero-versus-omitted tracking, reversible zero-cost confirmation and local quality reports. Missing-cost plans remain clearly labeled estimates rather than definitive safety guarantees.
+- Moved standalone tier/rule CSV uploads into Advanced Import Tools. Planned offers stay distinct from soft targets; merchant Tier 1 never maps to legacy P1.
+- Validation: 188 tests, production build, and 98 Chromium layout/state checks. Financial engine, recommendation methodology, base CSV contract and eight reference fixture files are unchanged.
+- See PHASE_2D.md for precise mappings, defaults, transaction behavior and remaining beta gates. No merge, deployment, production-setting change, backend or paid service was introduced.
+
 # Phase 2C release notes
 
 - Added Protect Your Important Products with Must Promote (Tier 1), Important (Tier 2), and Flexible (Tier 3), kept separate from legacy P1/P2/P3 file rules.

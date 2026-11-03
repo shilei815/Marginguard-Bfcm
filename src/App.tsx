@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import MerchantView, { RuleEditor } from "./MerchantView";
 import { initialGoal, parsePromotionCSV, type PromotionRule } from "./planner";
 import {
@@ -16,6 +16,14 @@ import {
   improveTierPlan,
   type TierState,
 } from "./tiers";
+import ImportSection from "./ImportSection";
+import {
+  importCampaign,
+  costQuality,
+  costColumns,
+  type ImportedCampaign,
+} from "./unifiedImport";
+import { parseTierCSV } from "./tiers";
 import demo from "../sku_master.csv?raw";
 import {
   portfolio,
@@ -29,14 +37,15 @@ import {
   type Assumptions,
   type Point,
 } from "./engine";
-import {
-  parseSKUs,
-  template,
-  priorityTemplate,
-  download,
-  exportCSV,
-} from "./csv";
-const initial = parseSKUs(demo);
+import { download, exportCSV } from "./csv";
+const synthetic = importCampaign(demo);
+const initial: ImportedCampaign = {
+  ...synthetic,
+  demo: true,
+  costsConfirmed: synthetic.costs.every(
+    (c) => c.state !== "missing" || c.field === "Other_Variable_Cost_USD",
+  ),
+};
 const pct = (n: number | null) =>
   n === null ? "—" : `${(n * 100).toFixed(1)}%`;
 function NumberField({
@@ -192,11 +201,24 @@ function Frontier({ points, floor }: { points: Point[]; floor: number }) {
   );
 }
 export default function App() {
-  const [skus, setSkus] = useState<SKU[]>(initial.skus),
-    [source, setSource] = useState("Synthetic demo · 30 fictional SKUs"),
-    [warnings, setWarnings] = useState(initial.warnings),
-    [error, setError] = useState("");
-  const [tiers, setTiers] = useState<TierState>(emptyTiers);
+  const [campaign, setCampaign] = useState<ImportedCampaign>(initial);
+  const { skus, tiers, rules: priorities } = campaign;
+  const warnings = campaign.costsConfirmed
+    ? campaign.warnings.filter(
+        (w) => !costColumns.some((f) => w.startsWith(f + " missing:")),
+      )
+    : campaign.warnings;
+  const quality = costQuality(campaign.costs, campaign.costsConfirmed);
+  const setSkus = (skus: SKU[]) => setCampaign((c) => ({ ...c, skus }));
+  const setTiers = (tiers: TierState) => setCampaign((c) => ({ ...c, tiers }));
+  const setPriorities = (rules: PromotionRule[]) =>
+    setCampaign((c) => ({ ...c, rules }));
+  const confirmCosts = (costsConfirmed: boolean) =>
+    setCampaign((c) => ({ ...c, costsConfirmed }));
+  const [source, setSource] = useState("Synthetic demo · 30 fictional SKUs"),
+    [error, setError] = useState(""),
+    [notice, setNotice] = useState("");
+  const importToken = useRef(0);
   const [advanced, setAdvanced] = useState(false),
     [mobileNavOpen, setMobileNavOpen] = useState(false),
     [buffer, setBuffer] = useState(0),
@@ -207,7 +229,6 @@ export default function App() {
     [overrides, setOverrides] = useState<Discounts>({}),
     [floor, setFloor] = useState(initialGoal(initial.skus)),
     [a, setA] = useState<Assumptions>(defaults),
-    [priorities, setPriorities] = useState<PromotionRule[]>([]),
     [objective, setObjective] = useState<"discount" | "profit">("discount");
   const [query, setQuery] = useState(""),
     [category, setCategory] = useState("All categories"),
@@ -225,7 +246,7 @@ export default function App() {
         negative: number;
       }[]
     >([]),
-    [scenarioName, setScenarioName] = useState("BFCM plan");
+    [scenarioName, setScenarioName] = useState("Promotion plan");
   const calculated = useMemo(() => {
     try {
       const baseline = portfolio(skus),
@@ -299,56 +320,78 @@ export default function App() {
   );
   async function upload(file: File | undefined, priority = false) {
     if (!file) return;
+    const token = ++importToken.current;
     setError("");
+    setNotice("");
     try {
       if (file.size > 5_000_000) throw Error("File exceeds 5 MB limit");
       const text = await file.text();
+      if (token !== importToken.current) return;
       if (priority) {
-        setPriorities(parsePromotionCSV(text, skus));
+        const rules = parsePromotionCSV(text, skus);
+        setPriorities(rules);
+        setNotice(
+          `Loaded ${rules.length} custom discount rule sets. Products, tiers, costs and current planned offers are unchanged.`,
+        );
       } else {
-        const data = parseSKUs(text);
-        const nextGoal = initialGoal(data.skus);
-        setSkus(data.skus);
+        const next = importCampaign(text);
+        setCampaign(next);
         setDataVersion((v) => v + 1);
-        setFloor(nextGoal);
+        setFloor(next.goal);
         setBuffer(0);
         setA(defaults);
         setMode("manual");
         setUniform(0.1);
         setSource(file.name);
-        setWarnings(data.warnings);
         setCategories({});
-        setOverrides({});
-        setPriorities([]);
-        setTiers(emptyTiers());
+        setOverrides(next.planned);
         setSaved([]);
         setCategory("All categories");
         setPage(0);
-        setPriorityId(data.skus[0].id);
+        setPriorityId(next.skus[0].id);
       }
     } catch (e) {
-      setError((e as Error).message);
+      if (token === importToken.current) setError((e as Error).message);
+    }
+  }
+  async function uploadTier(file: File | undefined) {
+    if (!file) return;
+    const token = ++importToken.current;
+    setError("");
+    setNotice("");
+    try {
+      if (file.size > 5_000_000)
+        throw Error("Tier CSV exceeds the 5 MB limit.");
+      const text = await file.text();
+      if (token !== importToken.current) return;
+      const next = parseTierCSV(text, skus, priorities, tiers);
+      updateTiers(next);
+      setNotice(
+        `Loaded ${Object.keys(next.assignments).length} tier assignments. Products, explicit rules and current offers are unchanged.`,
+      );
+    } catch (e) {
+      if (token === importToken.current)
+        setError("Tier list could not be loaded\n" + (e as Error).message);
     }
   }
   function demoReset() {
-    setSkus(initial.skus);
+    importToken.current++;
+    setCampaign(initial);
     setDataVersion((v) => v + 1);
-    setWarnings(initial.warnings);
     setSource("Synthetic demo · 30 fictional SKUs");
+    setError("");
+    setNotice("");
     setCategories({});
-    setOverrides({});
-    setPriorities([]);
-    setTiers(emptyTiers());
+    setOverrides(initial.planned);
     setSaved([]);
     setCategory("All categories");
     setPage(0);
     setA(defaults);
-    setFloor(initialGoal(initial.skus));
+    setFloor(initial.goal);
     setBuffer(0);
     setMode("manual");
     setUniform(0.1);
-    setError("");
-    setPriorityId("ELE-001");
+    setPriorityId(initial.skus[0].id);
   }
   const c = calculated.current,
     b = calculated.baseline,
@@ -382,7 +425,7 @@ export default function App() {
     return (
       <div className="merchant-shell">
         <header className="topbar">
-          <b>MarginGuard BFCM</b>
+          <b>MarginGuard</b>
           <button onClick={() => setAdvanced(true)}>Advanced Mode</button>
         </header>
         <main className="merchant-main">
@@ -428,6 +471,10 @@ export default function App() {
         allocationActive={mode === "optimized"}
         onToggle={() => setAdvanced(true)}
         onUpload={upload}
+        campaign={campaign}
+        onTierUpload={uploadTier}
+        onConfirmCosts={confirmCosts}
+        importNotice={notice}
         onDemo={demoReset}
         onRules={setPriorities}
         onGoal={setFloor}
@@ -468,7 +515,7 @@ export default function App() {
       <aside className="sidebar">
         <a href="#" className="brand">
           <span className="brand-icon">M</span> MarginGuard
-          <span className="brand-sub">BFCM EDITION</span>
+          <span className="brand-sub">DISCOUNT PLANNER</span>
         </a>
         <div className="workspace-label">YOUR WORKSPACE</div>
         <nav>
@@ -510,10 +557,10 @@ export default function App() {
             </button>
           </div>
           <span className="workspace-crumb">
-            Workspace <span className="slash">/</span> BFCM planning
+            Workspace <span className="slash">/</span> Promotion planning
           </span>
           <span className="badge">
-            PHASE 2C <span>·</span> BROWSER ONLY
+            PHASE 2D <span>·</span> BROWSER ONLY
           </span>
         </header>
         <nav
@@ -545,48 +592,27 @@ export default function App() {
           <section className="heading" id="overview">
             <div>
               <div className="eyebrow">PLAN WITH CONFIDENCE</div>
-              <h1>Make every discount count.</h1>
+              <h1>Plan Smarter Discounts. Protect Your Profit.</h1>
               <p>
-                Build a compelling BFCM offer. Keep your contribution profit in
-                sight.
+                See how your promotions affect profit, protect important
+                products, and find better discount plans.
               </p>
             </div>
-            <button
-              className="secondary"
-              onClick={() => download("marginguard-sku-template.csv", template)}
-            >
-              ↓ CSV template
-            </button>
           </section>
-          <section className="data-strip">
-            <div>
-              <span className="data-icon">▤</span>
-              <div>
-                <b>{source}</b>
-                <small>{skus.length} SKUs · USD · fixed expected sales</small>
-              </div>
-            </div>
-            <div className="actions">
-              <button className="text-button" onClick={demoReset}>
-                Load demo
-              </button>
-              <label className="button primary">
-                ↑ Upload SKU CSV
-                <input
-                  aria-label="Upload SKU CSV"
-                  type="file"
-                  accept=".csv,text/csv"
-                  onChange={(e) => {
-                    void upload(e.target.files?.[0]);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-            </div>
-          </section>
-          {(error || calculated.error) && (
+          <ImportSection
+            campaign={campaign}
+            source={source}
+            advanced
+            error={error}
+            notice={notice}
+            onUpload={upload}
+            onTierUpload={uploadTier}
+            onDemo={demoReset}
+            onConfirmCosts={confirmCosts}
+          />
+          {calculated.error && (
             <div role="alert" className="notice danger">
-              {error || calculated.error}
+              {calculated.error}
             </div>
           )}
           {warnings.length > 0 && (
@@ -612,6 +638,13 @@ export default function App() {
               </div>
               {c && b && (
                 <>
+                  {!quality.complete && (
+                    <p className="notice" role="note">
+                      Some Costs Missing. Estimated contribution profit may be
+                      overstated; omitted operating costs are counted as zero.
+                      Confirm actual costs before relying on goal achievement.
+                    </p>
+                  )}
                   <section className="cards">
                     {[
                       [
@@ -648,12 +681,14 @@ export default function App() {
                     ))}
                   </section>
                   <div
-                    className={`notice ${c.contribution < floor - 1e-6 ? "danger" : "success"}`}
+                    className={`notice ${c.contribution < floor - 1e-6 ? "danger" : quality.complete ? "success" : ""}`}
                   >
                     <b>
                       {c.contribution < floor - 1e-6
                         ? "Profit floor breached"
-                        : "Portfolio floor protected"}
+                        : quality.complete
+                          ? "Portfolio floor protected"
+                          : "Estimated floor met — costs incomplete"}
                     </b>
                     <span>
                       {money(c.contribution - floor)} headroom · {c.negative}{" "}
@@ -693,6 +728,7 @@ export default function App() {
                     goal={floor}
                     buffer={buffer}
                     a={a}
+                    costsComplete={quality.complete}
                   />
                   <section className="panel chart-panel">
                     <div className="panel-heading">
@@ -1235,8 +1271,10 @@ export default function App() {
                   state={tiers}
                   onChange={updateTiers}
                   advanced
+                  showImportTools={false}
                 />
                 <RuleEditor
+                  showImportTools={false}
                   skus={skus}
                   rules={priorities}
                   onChange={setPriorities}
@@ -1313,28 +1351,6 @@ export default function App() {
                     </button>
                   </div>
                 ))}
-                <div className="actions priority-actions">
-                  <label className="button secondary">
-                    Upload list
-                    <input
-                      aria-label="Upload priority CSV"
-                      type="file"
-                      accept=".csv,text/csv"
-                      onChange={(e) => {
-                        void upload(e.target.files?.[0], true);
-                        e.target.value = "";
-                      }}
-                    />
-                  </label>
-                  <button
-                    className="text-button"
-                    onClick={() =>
-                      download("priority-template.csv", priorityTemplate)
-                    }
-                  >
-                    ↓ Template
-                  </button>
-                </div>
                 <div className="divider" />
                 <details>
                   <summary>Stress assumptions</summary>
@@ -1407,8 +1423,8 @@ export default function App() {
             </div>
           </section>
           <footer>
-            MarginGuard BFCM{" "}
-            <span>Built for better discount decisions. · Phase 2C</span>
+            MarginGuard{" "}
+            <span>Built for better discount decisions. · Phase 2D</span>
           </footer>
         </div>
       </main>

@@ -236,6 +236,33 @@ try {
     tierListPath,
     "SKU,Priority_Tier,Target_Discount,Min_Discount,Max_Discount\nELE-004,1,0.1,0.05,0.15\nHOM-004,2,0.1,0,0.1\nACC-004,3,0.1,0,0.1\n",
   );
+  const unifiedPath = resolve(artifacts, "unified-products.csv"),
+    minimalPath = resolve(artifacts, "minimal-products.csv"),
+    invalidUnifiedPath = resolve(artifacts, "invalid-unified.csv");
+  const costHeaders = [
+    "Fulfillment_Cost_USD",
+    "Merchant_Shipping_USD",
+    "Payment_Fee_Rate",
+    "Order_Fixed_Fee_Allocated_USD",
+    "Expected_Return_Rate",
+    "Return_Cost_Per_Return_USD",
+    "Other_Variable_Cost_USD",
+  ];
+  const unifiedHeader =
+    "SKU,Product_Name,Category,Regular_Price_USD,Unit_COGS_USD,Inventory_Units,Expected_Units,Priority_Tier,Target_Discount,Min_Discount,Max_Discount,Planned_Discount,Exact_Discount,Preferred_Discount," +
+    costHeaders.join(",");
+  const unifiedText =
+    unifiedHeader +
+    "\nUA,Launch item,Seasonal,100,20,10,1,1,.4,.1,.6,.3,.3,.4,0,0,0,0,0,0,0\nUB,Everyday item,Everyday,100,20,10,1,2,.3,.1,.6,.3,,,0,0,0,0,0,0,0\nUC,Clearance item,Clearance,100,20,10,1,3,.2,0,.5,.3,,,0,0,0,0,0,0,0\n";
+  await writeFile(unifiedPath, unifiedText);
+  await writeFile(
+    invalidUnifiedPath,
+    unifiedText.replace("1,.4,.1,.6", "1,.4,.8,.6"),
+  );
+  await writeFile(
+    minimalPath,
+    "SKU,Regular_Price_USD,Unit_COGS_USD,Inventory_Units,Expected_Units\nMIN,50,20,100,10\n",
+  );
   for (const width of [320, 375, 390, 430, 768, 1440]) {
     await load(width);
     assert.deepEqual(
@@ -250,6 +277,11 @@ try {
     assert(
       ys.every((y, i) => i === 0 || y > ys[i - 1]),
       "Workflow order must match actual vertical layout",
+    );
+    assert(
+      await evaluate(
+        "document.title==='MarginGuard · Discount Profit Planner'&&!/BFCM|Black Friday/i.test(document.body.textContent)",
+      ),
     );
     await fit(width, "Simple", "default");
     if (width === 375 || width === 1440) await screenshot(`simple-${width}`);
@@ -354,9 +386,81 @@ try {
         "[...document.querySelectorAll('label')].find(l=>l.textContent.trim()==='Additional Safety Buffer (USD)').querySelector('input').value==='500'",
       ),
     );
+    // New primary onboarding is one native file transaction, including costs, tiers and planned offers.
+    await upload('input[aria-label="Upload products CSV"]', unifiedPath);
+    await wait("document.body.textContent.includes('unified-products.csv')");
+    assert(
+      await evaluate(
+        `document.querySelector('input[aria-label="UA special discount percent"]').value==='30'&&document.querySelector('select[aria-label="Promotion tier for UA"]').value==='1'`,
+      ),
+    );
+    assert(
+      await evaluate("!!document.querySelector('.cost-quality.complete')"),
+    );
+    await fit(width, "Simple", "unified-complete-import");
+    await input("Minimum Profit to Keep (USD)", 180);
+    await input("Additional Safety Buffer (USD)", 5);
+    const importedCards = await evaluate(
+      "document.querySelector('.merchant-cards').textContent",
+    );
+    await upload('input[aria-label="Upload products CSV"]', invalidUnifiedPath);
+    await wait("!!document.querySelector('.unified-import [role=alert]')");
+    assert.equal(
+      await evaluate("document.querySelector('.merchant-cards').textContent"),
+      importedCards,
+    );
+    assert(
+      await evaluate(
+        "document.body.textContent.includes('unified-products.csv')&&!document.body.textContent.includes('invalid-unified.csv')",
+      ),
+    );
+    assert(
+      await evaluate(
+        `[...document.querySelectorAll('label')].find(l=>l.textContent.trim()==='Additional Safety Buffer (USD)').querySelector('input').value==='5'`,
+      ),
+    );
+    await fit(width, "Simple", "atomic-import-rollback");
+    await upload('input[aria-label="Upload products CSV"]', minimalPath);
+    await wait("document.body.textContent.includes('minimal-products.csv')");
+    assert(
+      await evaluate(
+        "!!document.querySelector('.cost-quality.incomplete')&&document.body.textContent.includes('Estimated goal met — costs incomplete')",
+      ),
+    );
+    await fit(width, "Simple", "minimal-missing-costs");
+    await evaluate("document.querySelector('.cost-quality details').open=true");
+    await frame();
+    if (width === 375 || width === 1440) {
+      await evaluate(
+        "document.querySelector('.cost-quality').scrollIntoView({block:'start'});window.scrollBy(0,-80)",
+      );
+      await screenshot("missing-costs-" + width, false);
+    }
+    const estimatedCards = await evaluate(
+      "document.querySelector('.merchant-cards').textContent",
+    );
+    await evaluate(
+      `document.querySelector('input[aria-label="Confirm all omitted cost inputs are zero or not applicable"]').click()`,
+    );
+    await frame();
+    assert.equal(
+      await evaluate("document.querySelector('.merchant-cards').textContent"),
+      estimatedCards,
+    );
+    assert(
+      await evaluate("!!document.querySelector('.cost-quality.complete')"),
+    );
+    await fit(width, "Simple", "confirmed-zero-costs");
+    await button("Advanced Mode");
+    assert(
+      await evaluate(
+        "!!document.querySelector('.cost-quality.complete')&&!/BFCM|Black Friday/i.test(document.body.textContent)",
+      ),
+    );
+    await fit(width, "Advanced", "unified-state-cost-confirmation");
   }
   report.checks.push(
-    "Both modes fit all 6 requested viewport widths, including expanded disclosures, suggestions, allocations, infeasible goals and mobile navigation.",
+    "Unified native product import, cost presence/confirmation and atomic rollback verified at all six widths. Both modes fit all 6 requested viewport widths, including expanded disclosures, suggestions, allocations, infeasible goals and mobile navigation.",
     "Uniform 20% demo figures and goal/buffer state verified in Chromium.",
     "Identical plans show an informative state after applying recommendations.",
     "Tier bulk assignment, native tier CSV import, tier reporting and mode-state preservation verified at every viewport.",
@@ -453,6 +557,19 @@ try {
   assert.equal(await evaluate("window.__exports.at(-1).text()"), before);
   report.checks.push(
     "CSV before/after focus, blur and mode switches is identical: display formatting does not mutate precision.",
+  );
+  await button("Download Simple Template");
+  const simpleTemplate = await evaluate("window.__exports.at(-1).text()");
+  assert.equal(
+    simpleTemplate.split("\n")[0],
+    "SKU,Product_Name,Category,Regular_Price_USD,Unit_COGS_USD,Inventory_Units,Expected_Units,Priority_Tier,Target_Discount,Min_Discount,Max_Discount",
+  );
+  await button("Download Advanced Template");
+  const advancedTemplate = await evaluate("window.__exports.at(-1).text()");
+  assert(
+    advancedTemplate.includes("Planned_Discount") &&
+      advancedTemplate.includes("Other_Variable_Cost_USD") &&
+      advancedTemplate.includes("Priority"),
   );
   // Export inherited tier settings, change defaults, then restore the portable snapshot natively.
   await evaluate(

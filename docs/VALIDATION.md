@@ -1,4 +1,8 @@
-# Current Phase 2C verification
+# Current Phase 2D verification
+
+188 tests pass: all prior 143 functional regressions retained (one headline expectation updated for the requested branding) plus 32 pure importer/quality tests and 13 UI tests. TypeScript and Vite production compilation pass. Chromium passes 98 layout/state checks at 320, 375, 390, 430, 768 and 1440px, including native unified/minimal imports, atomic rollback, cost confirmation without metric changes, shared modes, templates and earlier tier/financial cases. No document/body horizontal overflow, runtime exceptions or external page requests were recorded in tested states. Financial/recommendation engines, base CSV parser and all eight original fixture files remain unchanged. See [Phase 2D report, semantics and beta gates](PHASE_2D.md). Historical phase results below describe the verification available at their completion.
+
+# Historical Phase 2C verification
 
 143 automated tests (all 88 prior regressions unchanged plus 55 tier policy/CSV/report/UI tests), strict TypeScript and production build pass. Chromium passes 68 layout/state checks at 320, 375, 390, 430, 768 and 1440px, now including tier bulk assignment, native tier CSV import, shared-state preservation, and long tier IDs with conflicting rules. No document/body overflow, runtime exceptions, or external page requests occurred in tested states. The original engines, base CSV module and eight reference fixtures remain unchanged. See [Phase 2C methodology and beta gates](PHASE_2C.md). Older phase results below are historical.
 
