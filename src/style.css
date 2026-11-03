@@ -1668,3 +1668,167 @@ footer {
     max-width: 100%;
   }
 }
+/* Unified import uses one primary upload; optional legacy tools stay disclosed. */
+.unified-import {
+  min-width: 0;
+  margin: 18px 0 22px;
+}
+.unified-import .data-strip {
+  margin-bottom: 10px;
+}
+.unified-import .actions {
+  flex-wrap: wrap;
+}
+.unified-import .data-strip > div:first-child {
+  min-width: 0;
+}
+.unified-import .data-strip b {
+  display: block;
+  margin-top: 6px;
+  color: #6e8376;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.import-counts {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  margin: 14px 0;
+  color: #59705f;
+}
+.import-counts span {
+  padding: 8px 10px;
+  background: #edf3ee;
+  border-radius: 6px;
+}
+.cost-quality {
+  padding: 15px;
+  border: 1px solid #d9e6dc;
+  border-radius: 8px;
+  margin: 14px 0;
+  min-width: 0;
+}
+.cost-quality.incomplete {
+  border-color: #e5cda4;
+  background: #fff8e9;
+}
+.cost-quality.complete {
+  background: #eef6ef;
+}
+.cost-quality .section-title {
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.cost-quality .section-title > span {
+  font-size: 11px;
+  color: #6b7c70;
+}
+.cost-quality p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.cost-quality .checkbox {
+  margin: 16px 0;
+  align-items: flex-start;
+  white-space: normal;
+}
+.cost-quality input[type="checkbox"] {
+  flex-shrink: 0;
+}
+.cost-quality details {
+  margin-bottom: 0;
+}
+.cost-quality table small {
+  white-space: normal;
+}
+.advanced-import-tools {
+  padding: 12px;
+  border: 1px solid #e0e7e2;
+  border-radius: 7px;
+  background: #fff;
+}
+.advanced-import-tools > .actions {
+  margin-top: 12px;
+}
+.unified-import .csv-help {
+  padding-bottom: 5px;
+  margin-bottom: 8px;
+}
+.unified-import .notice {
+  overflow-wrap: anywhere;
+}
+.unified-import button,
+.unified-import .button {
+  max-width: 100%;
+}
+.merchant-shell .heading h1 {
+  max-width: 840px;
+}
+.merchant-shell .heading p {
+  max-width: 800px;
+}
+@media (max-width: 1000px) {
+  .unified-import .data-strip {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .unified-import .data-strip > .actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .unified-import .data-strip .button.primary {
+    font-size: 14px;
+    min-height: 44px;
+  }
+  .unified-import .data-strip > .actions button {
+    font-size: 12px;
+  }
+  .unified-import .advanced-import-tools > .actions > * {
+    min-width: 0;
+  }
+  .cost-quality th {
+    white-space: normal;
+  }
+  .import-counts {
+    gap: 7px;
+  }
+  .import-counts span {
+    font-size: 11px;
+  }
+  .cost-quality {
+    padding: 12px;
+  }
+  .merchant-shell .heading h1 {
+    font-size: 27px;
+    line-height: 1.2;
+  }
+}
+@media (max-width: 430px) {
+  .unified-import .data-strip > .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .unified-import .data-strip > .actions .primary {
+    grid-row: 1;
+  }
+  .import-counts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .unified-import .data-strip > .actions .text-button {
+    justify-self: start;
+  }
+  .cost-quality .section-title {
+    display: block;
+  }
+  .cost-quality .section-title > span {
+    display: block;
+    margin-top: 7px;
+  }
+}
+
+.unified-import li {
+  overflow-wrap: anywhere;
+}

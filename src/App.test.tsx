@@ -26,7 +26,9 @@ function renderAdvanced() {
 describe("browser planner interactions", () => {
   it("renders optimized demo, financial distinctions and local-only statement", () => {
     renderAdvanced();
-    expect(screen.getByText("Make every discount count.")).toBeTruthy();
+    expect(
+      screen.getByText("Plan Smarter Discounts. Protect Your Profit."),
+    ).toBeTruthy();
     expect(screen.getByText("Portfolio floor protected")).toBeTruthy();
     expect(screen.getAllByText("Gross profit").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Contribution profit").length).toBeGreaterThan(
