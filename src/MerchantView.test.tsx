@@ -32,7 +32,7 @@ describe("Phase 2A merchant workflow", () => {
   it("defaults to plain English with condensed warnings and visible profit exclusions", () => {
     render(<App />);
     expect(screen.getByRole("button", { name: "Advanced Mode" })).toBeTruthy();
-    expect(screen.queryByText("Cumulative profitability frontier")).toBeNull();
+    expect(screen.queryByText("How Much More Can You Discount?")).toBeNull();
     expect(screen.queryByLabelText("Optimization objective")).toBeNull();
     expect(screen.queryByText("Contribution profit")).toBeNull();
     expect(screen.getByText(/not final net profit/)).toBeTruthy();
