@@ -32,3 +32,8 @@ The original cumulative CSV follows a different rule: P2 then P3, category alpha
 ## Numeric and operational limitations
 
 IEEE-754 double precision is retained until display/export. Constraint comparisons tolerate 1e-7 USD internally and scenario warnings 1e-6 USD to avoid floating-point false breaches. Dashboard cards round to whole USD for readability; CSV exports retain precision. No silent demand lift. No browser persistence, server submission, analytics, tracking, or external runtime assets. Optional costs omitted from the CSV default to explicitly warned zeros; the merchant must replace them. Model validity depends on accurate inputs.
+
+
+## Phase 2C merchant-tier extension
+
+The formulas and original optimizer implementation above are unchanged. Merchant tiers use a separate typed mapping and a rule adapter in `tiers.ts`. Effective tier hard values are inherited/overridden per field and intersect product-file and explicit SKU bounds. Targets remain soft; explicit SKU preferred discounts take precedence for within-tier recovery. With assignments active, the deterministic recovery policy consumes Tier 3 discretionary capacity before Tier 2, then Tier 1, using the same contribution calculations and tolerances. Original P1 hard-lock semantics remain independent of merchant tier. With no assignments the previous policy is used exactly. Every recommendation and advanced allocation is independently recalculated and checked against all hard bounds and goal + buffer before approval. See [complete Phase 2C methodology](PHASE_2C.md) for CSV validation, precedence, preference relaxation, reporting and beta verification limits.

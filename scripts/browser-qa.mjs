@@ -198,7 +198,7 @@ try {
   }
   async function input(label, value) {
     const found = await evaluate(
-      `(()=>{const name=${JSON.stringify(label)};const el=[...document.querySelectorAll('input,select')].find(e=>e.getAttribute('aria-label')===name)||[...document.querySelectorAll('label')].find(l=>l.textContent.trim()===name)?.querySelector('input,select');if(!el)return false;Object.getOwnPropertyDescriptor(el.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype,'value').set.call(el,${JSON.stringify(String(value))});el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));return true;})()`,
+      `(()=>{const name=${JSON.stringify(label)};const el=[...document.querySelectorAll('input,select')].find(e=>e.getAttribute('aria-label')===name)||[...document.querySelectorAll('label')].find(l=>[...l.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE).map(n=>n.textContent).join('').replace(/\\s+/g,' ').trim()===name)?.querySelector('input,select');if(!el)return false;Object.getOwnPropertyDescriptor(el.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype,'value').set.call(el,${JSON.stringify(String(value))});el.dispatchEvent(new Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));return true;})()`,
     );
     assert(found, `Missing field ${label}`);
     await frame();
@@ -222,8 +222,8 @@ try {
     );
     report.viewports.push({ width, mode, state, ...layout });
   }
-  const screenshot = async (name) => {
-    await evaluate("window.scrollTo(0,0)");
+  const screenshot = async (name, scrollToTop = true) => {
+    if (scrollToTop) await evaluate("window.scrollTo(0,0)");
     await frame();
     const shot = await page("Page.captureScreenshot", { format: "png" });
     await writeFile(
@@ -231,6 +231,11 @@ try {
       Buffer.from(shot.data, "base64"),
     );
   };
+  const tierListPath = resolve(artifacts, "synthetic-tiers.csv");
+  await writeFile(
+    tierListPath,
+    "SKU,Priority_Tier,Target_Discount,Min_Discount,Max_Discount\nELE-004,1,0.1,0.05,0.15\nHOM-004,2,0.1,0,0.1\nACC-004,3,0.1,0,0.1\n",
+  );
   for (const width of [320, 375, 390, 430, 768, 1440]) {
     await load(width);
     assert.deepEqual(
@@ -253,6 +258,24 @@ try {
     );
     await frame();
     await fit(width, "Simple", "all-details-expanded");
+    await input("Tier 1 target (%)", 10);
+    await input("Tier 1 hard maximum (%)", 15);
+    await evaluate(
+      `document.querySelector('input[aria-label="Select ELE-004 for tier"]').click()`,
+    );
+    await frame();
+    await button("Apply tier to 1 selected products");
+    assert(
+      await evaluate(
+        `!!document.querySelector('select[aria-label="Promotion tier for ELE-004"]')`,
+      ),
+    );
+    await fit(width, "Simple", "bulk-tier-assignment");
+    await upload('input[aria-label="Upload tier CSV"]', tierListPath);
+    await wait(
+      "document.body.textContent.includes('Loaded 3 tier assignments')",
+    );
+    await fit(width, "Simple", "native-tier-csv");
     await input("Storewide discount (%)", 20);
     const kpis = await evaluate(
       "document.querySelector('.merchant-cards').textContent",
@@ -271,6 +294,12 @@ try {
       ),
     );
     await fit(width, "Simple", "suggestion");
+    if (width === 375 || width === 1440) {
+      await evaluate(
+        "document.querySelector('.tier-report').scrollIntoView({block:'start'});window.scrollBy(0,-80)",
+      );
+      await screenshot("tier-protection-" + width, false);
+    }
     await button("Use Suggested Plan");
     assert(
       await evaluate(
@@ -280,6 +309,16 @@ try {
     await fit(width, "Simple", "identical-plan");
     await button("Advanced Mode");
     await fit(width, "Advanced", "manual");
+    assert(
+      await evaluate(
+        `document.querySelector('select[aria-label="Promotion tier for ELE-004"]').value==='1'`,
+      ),
+    );
+    assert(
+      await evaluate(
+        `[...document.querySelectorAll('label')].find(l=>l.textContent.trim()==='Tier 1 target (%)').querySelector('input').value==='10'`,
+      ),
+    );
     if (width <= 768) {
       await button("Navigation");
       assert(
@@ -320,6 +359,7 @@ try {
     "Both modes fit all 6 requested viewport widths, including expanded disclosures, suggestions, allocations, infeasible goals and mobile navigation.",
     "Uniform 20% demo figures and goal/buffer state verified in Chromium.",
     "Identical plans show an informative state after applying recommendations.",
+    "Tier bulk assignment, native tier CSV import, tier reporting and mode-state preservation verified at every viewport.",
   );
   // Actual native-file upload and long-label/conflicting-rule stress case.
   await load(320);
@@ -358,6 +398,15 @@ try {
   await wait(
     "document.body.textContent.includes('synthetic-long-products.csv')",
   );
+  const longTierPath = resolve(artifacts, "synthetic-long-tiers.csv");
+  await writeFile(
+    longTierPath,
+    "SKU,Priority_Tier,Target_Discount,Min_Discount,Max_Discount\n" +
+      longId +
+      ",1,0.2,0,0.4\n",
+  );
+  await upload('input[aria-label="Upload tier CSV"]', longTierPath);
+  await wait("document.body.textContent.includes('Loaded 1 tier assignments')");
   await upload('input[aria-label="Upload must-promote CSV"]', rulesPath);
   await wait("document.body.textContent.includes('Conflicting rules')");
   await button("Improve My Plan");
@@ -404,6 +453,47 @@ try {
   assert.equal(await evaluate("window.__exports.at(-1).text()"), before);
   report.checks.push(
     "CSV before/after focus, blur and mode switches is identical: display formatting does not mutate precision.",
+  );
+  // Export inherited tier settings, change defaults, then restore the portable snapshot natively.
+  await evaluate(
+    "document.querySelectorAll('details').forEach(e=>e.open=true)",
+  );
+  await input("Tier 1 target (%)", 10);
+  await input("Tier 1 hard maximum (%)", 15);
+  await evaluate(
+    `document.querySelector('input[aria-label="Select ELE-004 for tier"]').click()`,
+  );
+  await frame();
+  await button("Apply tier to 1 selected products");
+  await button("Export tier assignments");
+  const tierSnapshot = await evaluate("window.__exports.at(-1).text()");
+  assert(tierSnapshot.includes("ELE-004,1,0.1,0,0.15"));
+  const snapshotPath = resolve(artifacts, "exported-tier-snapshot.csv");
+  await writeFile(snapshotPath, tierSnapshot);
+  await input("Tier 1 target (%)", 5);
+  await upload('input[aria-label="Upload tier CSV"]', snapshotPath);
+  await wait("document.body.textContent.includes('Loaded 1 tier assignments')");
+  await input("Product for tier overrides", "ELE-004");
+  assert(
+    await evaluate(
+      `[...document.querySelectorAll('label')].find(l=>l.textContent.trim()==='Product tier target override (%)').querySelector('input').value==='10'`,
+    ),
+  );
+  assert(
+    await evaluate(
+      `[...document.querySelectorAll('label')].find(l=>l.textContent.trim()==='Tier 1 target (%)').querySelector('input').value==='5'`,
+    ),
+  );
+  await button("Export tier recommendations");
+  const tierRecommendations = await evaluate("window.__exports.at(-1).text()");
+  assert(
+    tierRecommendations.includes("Suggested_Contribution") &&
+      tierRecommendations.includes("Hard_Rules_Satisfied") &&
+      tierRecommendations.includes("ELE-004"),
+  );
+  await fit(375, "Simple", "tier-csv-export-roundtrip");
+  report.checks.push(
+    "Real browser tier assignment export, native import under changed defaults and recommendation export preserve resolved offers.",
   );
   assert.deepEqual(report.runtimeErrors, []);
   assert.deepEqual(report.externalRequests, []);

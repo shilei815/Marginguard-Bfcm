@@ -1,4 +1,8 @@
-# Current Phase 2B verification
+# Current Phase 2C verification
+
+143 automated tests (all 88 prior regressions unchanged plus 55 tier policy/CSV/report/UI tests), strict TypeScript and production build pass. Chromium passes 68 layout/state checks at 320, 375, 390, 430, 768 and 1440px, now including tier bulk assignment, native tier CSV import, shared-state preservation, and long tier IDs with conflicting rules. No document/body overflow, runtime exceptions, or external page requests occurred in tested states. The original engines, base CSV module and eight reference fixtures remain unchanged. See [Phase 2C methodology and beta gates](PHASE_2C.md). Older phase results below are historical.
+
+# Historical Phase 2B verification
 
 88 automated unit/UI tests and the TypeScript/Vite build pass. The 71 earlier regressions remain unchanged. An optional production-build Chromium harness passes 55 layout/state checks at 320, 375, 390, 430, 768 and 1440px, with no document/body horizontal overflow, runtime errors, or external page requests in tested states. Native synthetic CSV uploads, long/conflicting labels, menu navigation, identical-plan handling and export precision are exercised. Sample desktop/mobile screenshots were inspected. See [Phase 2B report and limits](PHASE_2B.md); older sections below record the verification available in earlier phases.
 

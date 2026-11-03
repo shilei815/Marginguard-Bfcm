@@ -1,3 +1,13 @@
+# Phase 2C release notes
+
+- Added Protect Your Important Products with Must Promote (Tier 1), Important (Tier 2), and Flexible (Tier 3), kept separate from legacy P1/P2/P3 file rules.
+- Added bulk assignment, editable tier defaults, independent product overrides, tier changes/removal, and a separate validated tier CSV import/template/export workflow.
+- Improve My Plan now recovers profit from Tier 3 → 2 → 1 when tiers are used. Hard rules and profit goals dominate soft targets. Below-target current offers are not automatically raised.
+- Added target-preservation counts, explicit target/hard-rule outcomes, reasons for changes, and detailed recommendation exports. Advanced Mode exposes effective bounds and separate file/tier semantics.
+- Original financial engine, previous policy and CSV modules, all 88 previous tests and eight fixture files remain unchanged. Every new suggested plan receives independent full financial and per-SKU hard-bound validation.
+- Validation: 143 tests, production build, and 68 real Chromium layout/state checks. No merge, deployment, paid service or production-setting change.
+- See PHASE_2C.md for precedence, policy limitations, browser QA scope and remaining beta release gates.
+
 # Phase 2B release notes
 
 - Corrected the actual four-step workflow order on desktop and mobile.
