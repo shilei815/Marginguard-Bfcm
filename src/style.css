@@ -964,3 +964,297 @@ footer {
     text-align: left;
   }
 }
+/* Phase 2A shares the original green and neutral palette. */
+.merchant-shell .merchant-main {
+  margin: 0 auto;
+  max-width: 1320px;
+  padding: 28px 36px;
+}
+.merchant-brand {
+  text-decoration: none;
+  font-weight: 750;
+  font-size: 19px;
+  color: #087b66;
+}
+.merchant-brand small {
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding-left: 10px;
+}
+.merchant-shell .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  gap: 12px;
+}
+.merchant-shell .heading {
+  margin-bottom: 20px;
+}
+.step-nav {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.step-nav a {
+  background: #edf3ee;
+  color: #355b48;
+  font-size: 12px;
+  padding: 10px 14px;
+}
+.merchant-cards {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 12px 0;
+}
+.merchant-cards .card strong {
+  font-size: 30px;
+}
+.merchant-cards .card > span {
+  font-size: 12px;
+}
+.merchant-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  align-items: start;
+  margin-top: 22px;
+}
+.merchant-grid .panel {
+  min-width: 0;
+}
+.merchant-shell p {
+  font-size: 12px;
+}
+.merchant-shell .caption {
+  font-size: 12px;
+}
+.merchant-shell .field {
+  font-size: 12px;
+}
+.merchant-shell .field input {
+  font-size: 16px;
+}
+.merchant-shell summary {
+  font-size: 12px;
+}
+.merchant-shell .data-strip {
+  margin-bottom: 10px;
+}
+.csv-help {
+  color: #516b5b;
+  padding: 8px 0 18px;
+  margin-top: 0;
+}
+.csv-help p {
+  max-width: 900px;
+  margin-top: 10px;
+}
+.profit-explainer {
+  margin: 12px 0 15px;
+}
+.plan-status {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 650;
+}
+.plan-status.good {
+  background: #e5f2e9;
+  color: #226b45;
+}
+.plan-status.risk {
+  background: #fcf1d8;
+  color: #805b1d;
+}
+.plan-status.bad {
+  background: #ffebe5;
+  color: #a13e24;
+}
+.merchant-shell .notice {
+  font-size: 12px;
+}
+.merchant-shell .notice > span {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+}
+.warning-summary {
+  max-height: 340px;
+  overflow: auto;
+  background: #fcfaf4;
+  color: #7a5c2d;
+}
+.warning-summary > details {
+  padding-left: 12px;
+}
+.warning-summary ul {
+  white-space: normal;
+}
+.product-selector {
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid #dfe7e1;
+  border-radius: 6px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+.merchant-shell .checkbox {
+  font-size: 12px;
+  white-space: normal;
+}
+.must-promote > input {
+  width: 100%;
+  margin: 12px 0;
+}
+.commitment-list {
+  max-height: 260px;
+  overflow: auto;
+}
+.commitment-list small button {
+  padding: 0 5px;
+  margin-left: 4px;
+}
+.improve {
+  font-size: 15px;
+  padding: 14px;
+  margin: 15px 0 5px;
+}
+.suggestion {
+  margin-top: 20px;
+}
+.suggestion td {
+  white-space: normal;
+  font-size: 11px;
+}
+.suggestion h3 {
+  margin-bottom: 12px;
+}
+.suggestion details p {
+  font-size: 11px;
+  padding: 4px 0;
+}
+.simple-chart svg {
+  width: 100%;
+  display: block;
+  min-height: 200px;
+}
+.bulk-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.bulk-controls .field {
+  margin: 0;
+  max-width: 180px;
+}
+.merchant-shell section[id] {
+  scroll-margin-top: 90px;
+}
+.merchant-shell table {
+  font-size: 12px;
+}
+.merchant-shell th {
+  font-size: 11px;
+}
+.merchant-shell td b {
+  font-size: 12px;
+}
+.merchant-shell td small {
+  font-size: 10px;
+}
+.merchant-shell td input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+.merchant-shell .discount-input {
+  font-size: 12px;
+  width: 85px;
+}
+.merchant-shell footer {
+  font-size: 11px;
+  gap: 15px;
+}
+.merchant-shell .panel-heading {
+  flex-wrap: wrap;
+}
+.merchant-shell .field input,
+.merchant-shell .field select {
+  min-height: 42px;
+}
+@media (max-width: 800px) {
+  .merchant-shell .merchant-main {
+    padding: 22px 18px;
+  }
+  .merchant-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .merchant-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .merchant-shell .data-strip {
+    align-items: flex-start;
+  }
+  .merchant-shell .data-strip .actions {
+    flex-wrap: wrap;
+  }
+  .merchant-shell .topbar .badge {
+    display: none;
+  }
+  .merchant-shell .topbar {
+    padding: 12px 18px;
+    min-height: 62px;
+    height: auto;
+  }
+  .merchant-shell .chart-foot {
+    font-size: 11px;
+  }
+  .merchant-shell .card strong {
+    font-size: 28px;
+  }
+  .merchant-shell .step-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .merchant-shell .step-nav a {
+    font-size: 11px;
+    margin: 0;
+    padding: 9px;
+  }
+  .merchant-shell .simple-chart svg {
+    min-width: 600px;
+  }
+  .simple-chart {
+    overflow: auto;
+  }
+}
+@media (max-width: 430px) {
+  .merchant-shell .merchant-main {
+    padding: 18px 12px;
+  }
+  .merchant-brand {
+    font-size: 16px;
+  }
+  .merchant-brand small {
+    display: none;
+  }
+  .merchant-cards .card strong {
+    font-size: 25px;
+  }
+  .merchant-shell .data-strip .actions {
+    justify-content: flex-start;
+  }
+  .merchant-shell .data-strip .button {
+    font-size: 12px;
+  }
+  .merchant-shell .topbar button {
+    font-size: 12px;
+  }
+  .merchant-shell .heading h1 {
+    font-size: 25px;
+  }
+}

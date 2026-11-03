@@ -35,3 +35,11 @@ React UI tests run in jsdom. Desktop/mobile layouts use responsive CSS breakpoin
 ## Remaining scope limits
 
 No demand model, discrete optimization, tax/multi-currency, overhead, full return/refund cash flow, checkout integration, scenario persistence, or deployment. Preferred discounts are reported soft targets. Unknown financial columns are warned and excluded until mapped into template fields. An infeasible allocation is shown only as a diagnostic and cannot be saved as an optimized snapshot. Manual previews can be exported despite warnings for review. Do not interpret an export as approval of violated constraints.
+
+## Phase 2A validation
+
+Current Phase 2A run: **71 tests pass across four suites** (the 37 Phase 1 regressions plus 34 new policy/UI tests). `npm run build` passes strict TypeScript and Vite static production compilation. Phase 1 UI assertions are preserved with an explicit Advanced Mode setup; financial regression tests, `engine.ts`, `csv.ts`, and all eight original fixtures are unchanged.
+
+Uniform 20% synthetic regression: $253,256.80 revenue, approximately −$14,608.76 contribution, 22 negative-contribution products. These values are computed from the original dataset, not inserted into application output.
+
+New tests cover rule intersections and infeasibility, exact/min/max/preferred behavior, P1 locks, safety buffers, dataset-derived goals, deterministic recommendations, stress-aware before/after metrics, warning grouping, weighted chart semantics/zero crossing, mode-state preservation, bulk updates, uploads, local exports, and narrow-window presence of controls. See [Phase 2A methodology and browser checklist](PHASE_2A.md). No real-browser visual, layout, accessibility, or timed usability verification was available.

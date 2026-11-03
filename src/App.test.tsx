@@ -18,9 +18,14 @@ afterEach(() => {
 function change(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
+function renderAdvanced() {
+  render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "Advanced Mode" }));
+  fireEvent.click(screen.getByRole("button", { name: "Optimize" }));
+}
 describe("browser planner interactions", () => {
   it("renders optimized demo, financial distinctions and local-only statement", () => {
-    render(<App />);
+    renderAdvanced();
     expect(screen.getByText("Make every discount count.")).toBeTruthy();
     expect(screen.getByText("Portfolio floor protected")).toBeTruthy();
     expect(screen.getAllByText("Gross profit").length).toBeGreaterThan(0);
@@ -32,7 +37,7 @@ describe("browser planner interactions", () => {
     ).toBeTruthy();
   });
   it("updates uniform, category, and SKU overrides with precedence", () => {
-    render(<App />);
+    renderAdvanced();
     fireEvent.click(screen.getByRole("button", { name: "Manual scenario" }));
     change("Uniform discount", "20");
     expect(
@@ -52,7 +57,7 @@ describe("browser planner interactions", () => {
     ).toBe("25");
   });
   it("filters loss SKUs, searches, paginates, and saves a comparison", () => {
-    render(<App />);
+    renderAdvanced();
     change("Search SKUs", "ELE-001");
     expect(screen.getByText("Electronics Item 01")).toBeTruthy();
     expect(screen.queryByText("Electronics Item 02")).toBeNull();
@@ -63,7 +68,7 @@ describe("browser planner interactions", () => {
     expect(screen.queryByText("Review A")).toBeNull();
   });
   it("reports impossible priority constraints and floor breaches", () => {
-    render(<App />);
+    renderAdvanced();
     change("Minimum (%)", "90");
     change("Preferred (%)", "90");
     fireEvent.click(
@@ -77,7 +82,7 @@ describe("browser planner interactions", () => {
     expect(screen.getByText(/Required discounts yield/)).toBeTruthy();
   });
   it("preserves valid data after a failed CSV upload", async () => {
-    render(<App />);
+    renderAdvanced();
     const file = {
       size: 10,
       name: "bad.csv",
@@ -98,7 +103,7 @@ describe("browser planner interactions", () => {
       throw Error("Network calls forbidden");
     });
     vi.stubGlobal("fetch", fetch);
-    render(<App />);
+    renderAdvanced();
     fireEvent.change(screen.getByLabelText("Upload SKU CSV"), {
       target: {
         files: [
@@ -134,14 +139,14 @@ describe("browser planner interactions", () => {
     const click = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(() => {});
-    render(<App />);
+    renderAdvanced();
     fireEvent.click(screen.getByRole("button", { name: "↓ Export" }));
     expect(create).toHaveBeenCalledOnce();
     expect(click).toHaveBeenCalledOnce();
     click.mockRestore();
   });
   it("explores frontier allocation using a keyboard-compatible range", () => {
-    render(<App />);
+    renderAdvanced();
     change("Explore frontier allocation", "1");
     expect(screen.getByText(/Explore allocation 1 of/)).toBeTruthy();
     const chart = screen.getByRole("img", {

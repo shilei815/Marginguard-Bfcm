@@ -1,23 +1,27 @@
 import { useMemo, useState } from "react";
+import MerchantView, { RuleEditor } from "./MerchantView";
+import {
+  initialGoal,
+  optimizeCampaign,
+  parsePromotionCSV,
+  planWarnings,
+  type PromotionRule,
+} from "./planner";
 import demo from "../sku_master.csv?raw";
 import {
   portfolio,
   scenario,
-  optimize,
   defaults,
   minimums,
   discountFor,
-  constraintErrors,
   crossing,
   type SKU,
-  type Priority,
   type Discounts,
   type Assumptions,
   type Point,
 } from "./engine";
 import {
   parseSKUs,
-  parsePriorities,
   template,
   priorityTemplate,
   download,
@@ -191,13 +195,16 @@ export default function App() {
     [source, setSource] = useState("Synthetic demo · 30 fictional SKUs"),
     [warnings, setWarnings] = useState(initial.warnings),
     [error, setError] = useState("");
-  const [mode, setMode] = useState<"manual" | "optimized">("optimized"),
+  const [advanced, setAdvanced] = useState(false),
+    [buffer, setBuffer] = useState(0),
+    [dataVersion, setDataVersion] = useState(0);
+  const [mode, setMode] = useState<"manual" | "optimized">("manual"),
     [uniform, setUniform] = useState(0.1),
     [categories, setCategories] = useState<Discounts>({}),
     [overrides, setOverrides] = useState<Discounts>({}),
-    [floor, setFloor] = useState(27590.74),
+    [floor, setFloor] = useState(initialGoal(initial.skus)),
     [a, setA] = useState<Assumptions>(defaults),
-    [priorities, setPriorities] = useState<Priority[]>([]),
+    [priorities, setPriorities] = useState<PromotionRule[]>([]),
     [objective, setObjective] = useState<"discount" | "profit">("discount");
   const [query, setQuery] = useState(""),
     [category, setCategory] = useState("All categories"),
@@ -219,17 +226,19 @@ export default function App() {
   const calculated = useMemo(() => {
     try {
       const baseline = portfolio(skus),
-        opt = optimize(skus, floor, priorities, a, objective),
+        opt = optimizeCampaign(skus, floor + buffer, priorities, a, objective),
         ds =
           mode === "optimized"
             ? opt.discounts
             : scenario(skus, uniform, categories, overrides),
         current = portfolio(skus, ds, a),
-        issues = constraintErrors(skus, ds, priorities);
-      if (current.contribution < floor - 1e-6)
-        issues.push(
-          `Portfolio contribution is ${money(floor - current.contribution)} below your floor.`,
-        );
+        issues = planWarnings(skus, ds, priorities, floor, buffer, a)
+          .filter(
+            (w) =>
+              w.kind !== "Product losing money" &&
+              w.kind !== "Preferred target",
+          )
+          .map((w) => `${w.id ?? w.category}: ${w.message}`);
       return { baseline, opt, ds, current, issues, error: "" };
     } catch (e) {
       return { error: (e as Error).message };
@@ -237,6 +246,7 @@ export default function App() {
   }, [
     skus,
     floor,
+    buffer,
     priorities,
     a,
     objective,
@@ -256,10 +266,17 @@ export default function App() {
       if (file.size > 5_000_000) throw Error("File exceeds 5 MB limit");
       const text = await file.text();
       if (priority) {
-        setPriorities(parsePriorities(text, skus));
+        setPriorities(parsePromotionCSV(text, skus));
       } else {
         const data = parseSKUs(text);
+        const nextGoal = initialGoal(data.skus);
         setSkus(data.skus);
+        setDataVersion((v) => v + 1);
+        setFloor(nextGoal);
+        setBuffer(0);
+        setA(defaults);
+        setMode("manual");
+        setUniform(0.1);
         setSource(file.name);
         setWarnings(data.warnings);
         setCategories({});
@@ -276,6 +293,7 @@ export default function App() {
   }
   function demoReset() {
     setSkus(initial.skus);
+    setDataVersion((v) => v + 1);
     setWarnings(initial.warnings);
     setSource("Synthetic demo · 30 fictional SKUs");
     setCategories({});
@@ -285,7 +303,11 @@ export default function App() {
     setCategory("All categories");
     setPage(0);
     setA(defaults);
-    setFloor(27590.74);
+    setFloor(initialGoal(initial.skus));
+    setBuffer(0);
+    setMode("manual");
+    setUniform(0.1);
+    setError("");
     setPriorityId("ELE-001");
   }
   const c = calculated.current,
@@ -316,6 +338,89 @@ export default function App() {
   );
   const totalPages = Math.max(1, Math.ceil(filtered.length / 20)),
     visiblePage = Math.min(page, totalPages - 1);
+  if (!advanced && !c)
+    return (
+      <div className="merchant-shell">
+        <header className="topbar">
+          <b>MarginGuard BFCM</b>
+          <button onClick={() => setAdvanced(true)}>Advanced Mode</button>
+        </header>
+        <main className="merchant-main">
+          <h1>Let's check your settings.</h1>
+          <div role="alert" className="notice danger">
+            We could not calculate this plan: {calculated.error}. Your campaign
+            inputs are still here.
+          </div>
+          <NumberField
+            label="Minimum Profit to Keep (USD)"
+            value={floor}
+            onChange={setFloor}
+          />
+          <NumberField
+            label="Additional Safety Buffer (USD)"
+            value={buffer}
+            onChange={setBuffer}
+          />
+          <button onClick={() => setA(defaults)}>
+            Clear extra cost and discount assumptions
+          </button>
+        </main>
+      </div>
+    );
+  if (!advanced && c && calculated.ds)
+    return (
+      <MerchantView
+        key={dataVersion}
+        skus={skus}
+        source={source}
+        warnings={warnings}
+        error={error}
+        discounts={calculated.ds}
+        uniform={uniform}
+        categories={categories}
+        rules={priorities}
+        goal={floor}
+        buffer={buffer}
+        a={a}
+        advanced={advanced}
+        allocationActive={mode === "optimized"}
+        onToggle={() => setAdvanced(true)}
+        onUpload={upload}
+        onDemo={demoReset}
+        onRules={setPriorities}
+        onGoal={setFloor}
+        onBuffer={setBuffer}
+        onUniform={(n) => {
+          setUniform(n);
+          if (mode === "optimized") setOverrides({});
+          setMode("manual");
+        }}
+        onCategory={(name, n) => {
+          const next = { ...categories };
+          if (n === undefined) delete next[name];
+          else next[name] = n;
+          setCategories(next);
+          if (mode === "optimized") setOverrides({});
+          setMode("manual");
+        }}
+        onApply={(ds) => {
+          setOverrides(ds);
+          setMode("manual");
+        }}
+        onOverride={(id, n) => {
+          setOverrides({
+            ...(mode === "optimized" ? calculated.ds : overrides),
+            [id]: n,
+          });
+          setMode("manual");
+        }}
+        onClear={() => {
+          setOverrides({});
+          setCategories({});
+          setMode("manual");
+        }}
+      />
+    );
   return (
     <div className="app">
       <aside className="sidebar">
@@ -344,11 +449,12 @@ export default function App() {
       </aside>
       <main>
         <header className="topbar">
+          <button onClick={() => setAdvanced(false)}>Simple Mode</button>
           <span>
             Workspace <span className="slash">/</span> BFCM planning
           </span>
           <span className="badge">
-            PHASE 1 <span>·</span> BROWSER ONLY
+            PHASE 2A <span>·</span> BROWSER ONLY
           </span>
         </header>
         <div className="content">
@@ -511,7 +617,10 @@ export default function App() {
                         Contribution profit
                       </span>
                     </div>
-                    <Frontier points={opt?.points ?? []} floor={floor} />
+                    <Frontier
+                      points={opt?.points ?? []}
+                      floor={floor + buffer}
+                    />
                     <p className="caption">
                       Continuous weighted allocation: required minimums first,
                       then descending allocation weight per dollar of
@@ -648,6 +757,7 @@ export default function App() {
                           <tr>
                             <th>Product / SKU</th>
                             <th>Priority</th>
+                            <th>Allocation weight</th>
                             <th>Units</th>
                             <th>Discount</th>
                             <th>
@@ -689,8 +799,39 @@ export default function App() {
                                       {l.sku.priority}
                                     </span>
                                   </td>
+                                  <td>
+                                    <input
+                                      type="number"
+                                      aria-label={`${l.sku.id} allocation weight`}
+                                      min="0"
+                                      step="any"
+                                      value={l.sku.weight}
+                                      onChange={(e) => {
+                                        const n = e.target.valueAsNumber;
+                                        if (Number.isFinite(n) && n >= 0)
+                                          setSkus(
+                                            skus.map((s) =>
+                                              s.id === l.sku.id
+                                                ? { ...s, weight: n }
+                                                : s,
+                                            ),
+                                          );
+                                      }}
+                                    />
+                                  </td>
                                   <td>{l.units}</td>
                                   <td>
+                                    <NumberField
+                                      label="Additional Safety Buffer (USD)"
+                                      value={buffer}
+                                      onChange={setBuffer}
+                                    />
+                                    <p className="caption">
+                                      New uploads use 50% of positive baseline
+                                      contribution as the editable floor.
+                                      Allocation must meet floor plus safety
+                                      buffer.
+                                    </p>
                                     {mode === "manual" ? (
                                       <input
                                         className="discount-input"
@@ -1001,6 +1142,12 @@ export default function App() {
                   </>
                 )}
                 <div className="divider" />
+                <RuleEditor
+                  skus={skus}
+                  rules={priorities}
+                  onChange={setPriorities}
+                  onUpload={(f) => upload(f, true)}
+                />
                 <h3>Priority SKUs</h3>
                 <p className="caption">
                   Dataset minimums always apply. Add stricter minimums or soft
@@ -1044,6 +1191,7 @@ export default function App() {
                     setPriorities([
                       ...priorities.filter((p) => p.id !== priorityId),
                       {
+                        ...priorities.find((p) => p.id === priorityId),
                         id: priorityId,
                         min: priorityMin,
                         preferred: priorityPreferred,
@@ -1166,7 +1314,7 @@ export default function App() {
           </section>
           <footer>
             MarginGuard BFCM{" "}
-            <span>Built for better discount decisions. · Phase 1</span>
+            <span>Built for better discount decisions. · Phase 2A</span>
           </footer>
         </div>
       </main>
