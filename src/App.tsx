@@ -1,12 +1,6 @@
 import { useMemo, useState } from "react";
 import MerchantView, { RuleEditor } from "./MerchantView";
-import {
-  initialGoal,
-  optimizeCampaign,
-  parsePromotionCSV,
-  planWarnings,
-  type PromotionRule,
-} from "./planner";
+import { initialGoal, parsePromotionCSV, type PromotionRule } from "./planner";
 import {
   usd as money,
   wholeUSD,
@@ -14,6 +8,14 @@ import {
   WarningSummary,
   DiagnosticSummary,
 } from "./presentation";
+import TierControls, { TierSummary } from "./TierControls";
+import {
+  emptyTiers,
+  optimizeTierCampaign,
+  tierPlanWarnings,
+  improveTierPlan,
+  type TierState,
+} from "./tiers";
 import demo from "../sku_master.csv?raw";
 import {
   portfolio,
@@ -194,6 +196,7 @@ export default function App() {
     [source, setSource] = useState("Synthetic demo · 30 fictional SKUs"),
     [warnings, setWarnings] = useState(initial.warnings),
     [error, setError] = useState("");
+  const [tiers, setTiers] = useState<TierState>(emptyTiers);
   const [advanced, setAdvanced] = useState(false),
     [mobileNavOpen, setMobileNavOpen] = useState(false),
     [buffer, setBuffer] = useState(0),
@@ -226,18 +229,51 @@ export default function App() {
   const calculated = useMemo(() => {
     try {
       const baseline = portfolio(skus),
-        opt = optimizeCampaign(skus, floor + buffer, priorities, a, objective),
+        opt = optimizeTierCampaign(
+          skus,
+          floor + buffer,
+          priorities,
+          a,
+          objective,
+          tiers,
+        ),
         ds =
           mode === "optimized"
             ? opt.discounts
             : scenario(skus, uniform, categories, overrides),
         current = portfolio(skus, ds, a),
-        issues = planWarnings(skus, ds, priorities, floor, buffer, a);
-      return { baseline, opt, ds, current, issues, error: "" };
+        issues = tierPlanWarnings(
+          skus,
+          ds,
+          priorities,
+          tiers,
+          floor,
+          buffer,
+          a,
+        ),
+        tierRecommendation = improveTierPlan(
+          skus,
+          ds,
+          priorities,
+          floor,
+          buffer,
+          a,
+          tiers,
+        );
+      return {
+        baseline,
+        opt,
+        ds,
+        current,
+        issues,
+        tierRecommendation,
+        error: "",
+      };
     } catch (e) {
       return { error: (e as Error).message };
     }
   }, [
+    tiers,
     skus,
     floor,
     buffer,
@@ -249,6 +285,14 @@ export default function App() {
     categories,
     overrides,
   ]);
+  function updateTiers(next: TierState) {
+    // Tier editing is configuration, not an implicit Apply/Optimize action.
+    if (mode === "optimized" && calculated.ds) {
+      setOverrides(calculated.ds);
+      setMode("manual");
+    }
+    setTiers(next);
+  }
   const cats = [...new Set(skus.map((s) => s.category))].sort();
   const baseById = new Map(
     calculated.baseline?.lines.map((l) => [l.sku.id, l]),
@@ -276,6 +320,7 @@ export default function App() {
         setCategories({});
         setOverrides({});
         setPriorities([]);
+        setTiers(emptyTiers());
         setSaved([]);
         setCategory("All categories");
         setPage(0);
@@ -293,6 +338,7 @@ export default function App() {
     setCategories({});
     setOverrides({});
     setPriorities([]);
+    setTiers(emptyTiers());
     setSaved([]);
     setCategory("All categories");
     setPage(0);
@@ -373,6 +419,8 @@ export default function App() {
         uniform={uniform}
         categories={categories}
         rules={priorities}
+        tiers={tiers}
+        onTiers={updateTiers}
         goal={floor}
         buffer={buffer}
         a={a}
@@ -465,7 +513,7 @@ export default function App() {
             Workspace <span className="slash">/</span> BFCM planning
           </span>
           <span className="badge">
-            PHASE 2B <span>·</span> BROWSER ONLY
+            PHASE 2C <span>·</span> BROWSER ONLY
           </span>
         </header>
         <nav
@@ -636,6 +684,16 @@ export default function App() {
                       </ul>
                     </details>
                   )}
+                  <TierSummary
+                    skus={skus}
+                    current={calculated.ds!}
+                    suggested={calculated.tierRecommendation?.discounts ?? null}
+                    rules={priorities}
+                    state={tiers}
+                    goal={floor}
+                    buffer={buffer}
+                    a={a}
+                  />
                   <section className="panel chart-panel">
                     <div className="panel-heading">
                       <div>
@@ -786,7 +844,7 @@ export default function App() {
                         <thead>
                           <tr>
                             <th>Product / SKU</th>
-                            <th>Priority</th>
+                            <th>File priority (legacy)</th>
                             <th>Allocation weight</th>
                             <th>Units</th>
                             <th>Discount</th>
@@ -1170,6 +1228,14 @@ export default function App() {
                   </>
                 )}
                 <div className="divider" />
+                <TierControls
+                  key={dataVersion}
+                  skus={skus}
+                  rules={priorities}
+                  state={tiers}
+                  onChange={updateTiers}
+                  advanced
+                />
                 <RuleEditor
                   skus={skus}
                   rules={priorities}
@@ -1342,7 +1408,7 @@ export default function App() {
           </section>
           <footer>
             MarginGuard BFCM{" "}
-            <span>Built for better discount decisions. · Phase 2B</span>
+            <span>Built for better discount decisions. · Phase 2C</span>
           </footer>
         </div>
       </main>

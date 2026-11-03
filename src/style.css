@@ -1554,3 +1554,117 @@ footer {
     font-size: 11px;
   }
 }
+/* Merchant tiers remain separate from legacy file priorities and hard-rule controls. */
+.tier-section {
+  min-width: 0;
+  margin: 20px 0;
+  border-top: 1px solid #e1e9e3;
+  padding-top: 16px;
+}
+.tier-section h3,
+.tier-report h3 {
+  font-size: 14px;
+}
+.tier-defaults,
+.tier-override-fields,
+.tier-report-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+.tier-defaults fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #dce7df;
+  border-radius: 8px;
+}
+.tier-defaults legend {
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.tier-section .field,
+.tier-section .checkbox,
+.tier-report {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tier-bulk {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tier-bulk .field {
+  flex: 1;
+  min-width: 0;
+}
+.tier-file-actions {
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.tier-report {
+  margin: 18px 0;
+  padding: 18px;
+  background: #eef5ef;
+  border: 1px solid #d7e6db;
+  border-radius: 9px;
+}
+.tier-report-cards {
+  margin: 14px 0;
+}
+.tier-report-cards article {
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #dfe9e2;
+  border-radius: 7px;
+  min-width: 0;
+}
+.tier-report-cards b,
+.tier-report-cards p {
+  font-size: 12px;
+}
+.tier-report-cards small {
+  color: #627c6b;
+}
+.tier-section .table-scroll,
+.tier-report .table-scroll {
+  margin: 14px 0;
+}
+.tier-reason {
+  min-width: 220px;
+  max-width: 380px;
+  white-space: normal;
+}
+.controls .tier-defaults,
+.controls .tier-override-fields {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (max-width: 800px) {
+  .tier-defaults,
+  .tier-override-fields,
+  .tier-report-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tier-section .field,
+  .tier-section summary {
+    font-size: 12px;
+  }
+  .tier-section .field input,
+  .tier-section .field select {
+    font-size: 16px;
+    min-height: 42px;
+  }
+  .tier-bulk > * {
+    max-width: 100%;
+  }
+  .tier-file-actions button,
+  .tier-file-actions .button {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+  }
+}

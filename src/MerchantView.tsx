@@ -7,14 +7,19 @@ import {
   type Assumptions,
 } from "./engine";
 import {
-  improvePlan,
   profitStatus,
-  planWarnings,
   adjustmentPath,
   promotionTemplate,
   type PromotionRule,
 } from "./planner";
 import { download, exportCSV, template } from "./csv";
+import TierControls, { TierSummary } from "./TierControls";
+import {
+  emptyTiers,
+  improveTierPlan,
+  tierPlanWarnings,
+  type TierState,
+} from "./tiers";
 import {
   usd as money,
   wholeUSD,
@@ -57,7 +62,9 @@ export function RuleEditor({
   rules,
   onChange,
   onUpload,
+  title,
 }: {
+  title?: string;
   skus: SKU[];
   rules: PromotionRule[];
   onChange: (rules: PromotionRule[]) => void;
@@ -84,7 +91,7 @@ export function RuleEditor({
   return (
     <details className="must-promote">
       <summary>
-        Must-Promote Products · {rules.length} selected commitments
+        {title ?? "Must-Promote Products"} · {rules.length} selected commitments
       </summary>
       <p className="caption">
         Exact = keep this offer. Minimum = at least this offer. Maximum = never
@@ -239,6 +246,7 @@ export function ProfitChart({
   goal,
   buffer,
   rules = [],
+  tiers = emptyTiers(),
 }: {
   skus: SKU[];
   current: Discounts;
@@ -247,6 +255,7 @@ export function ProfitChart({
   goal: number;
   buffer: number;
   rules?: PromotionRule[];
+  tiers?: TierState;
 }) {
   if (!suggested)
     return (
@@ -271,7 +280,15 @@ export function ProfitChart({
   const sameFinancials = (["revenue", "gross", "contribution"] as const).every(
     (k) => Math.abs(currentFinancials[k] - suggestedFinancials[k]) <= 1e-7,
   );
-  const hardIssues = planWarnings(skus, current, rules, goal, buffer, a).filter(
+  const hardIssues = tierPlanWarnings(
+    skus,
+    current,
+    rules,
+    tiers,
+    goal,
+    buffer,
+    a,
+  ).filter(
     (w) =>
       w.kind !== "Product losing money" &&
       w.kind !== "Preferred target" &&
@@ -451,6 +468,8 @@ export interface MerchantProps {
   uniform: number;
   categories: Discounts;
   rules: PromotionRule[];
+  tiers: TierState;
+  onTiers: (state: TierState) => void;
   goal: number;
   buffer: number;
   a: Assumptions;
@@ -472,11 +491,20 @@ export default function MerchantView(p: MerchantProps) {
   const { skus, discounts, rules, goal, buffer, a } = p,
     current = portfolio(skus, discounts, a),
     baseline = portfolio(skus),
-    recommendation = improvePlan(skus, discounts, rules, goal, buffer, a),
-    warnings = planWarnings(
+    recommendation = improveTierPlan(
       skus,
       discounts,
       rules,
+      goal,
+      buffer,
+      a,
+      p.tiers,
+    ),
+    warnings = tierPlanWarnings(
+      skus,
+      discounts,
+      rules,
+      p.tiers,
       goal,
       buffer,
       a,
@@ -598,11 +626,11 @@ export default function MerchantView(p: MerchantProps) {
             payment, shipping, fulfillment, and return costs to get a more
             complete profit estimate. Use decimal percentages in CSV files: 0.2
             means 20%. Maximum 5 MB and 10,000 products. Uploading products
-            starts a fresh campaign: offers reset to 10%, custom commitments and
-            extra stress costs clear, and your goal is recalculated with a $0
-            buffer. Missing optional costs are counted as zero and flagged for
-            review; they are never estimated for you. Field mapping is not
-            available yet: rename columns to match the template.
+            starts a fresh campaign: offers reset to 10%, custom commitments,
+            tier settings, and extra stress costs clear, and your goal is
+            recalculated with a $0 buffer. Missing optional costs are counted as
+            zero and flagged for review; they are never estimated for you. Field
+            mapping is not available yet: rename columns to match the template.
           </p>
         </details>
         {p.error && (
@@ -662,7 +690,14 @@ export default function MerchantView(p: MerchantProps) {
               </label>
             ))}
           </details>
+          <TierControls
+            skus={skus}
+            rules={rules}
+            state={p.tiers}
+            onChange={p.onTiers}
+          />
           <RuleEditor
+            title="Exact offers and additional hard rules"
             skus={skus}
             rules={rules}
             onChange={p.onRules}
@@ -808,11 +843,14 @@ export default function MerchantView(p: MerchantProps) {
             Improve My Plan
           </button>
           <p className="caption">
-            We keep required offers, correct offers outside your rules, then
-            reduce discretionary discounts only as much as needed. Ordinary
-            products change first; must-promote products and preferred offers
-            are protected longer. Required offers may lower profit if your
-            current plan does not honor them. No extra sales are assumed.
+            We keep required offers and correct discounts outside your hard
+            rules. With merchant tiers, Flexible products change first, then
+            Important, then Must Promote. Within a tier we protect preferred
+            offers where possible. Without merchant tiers, the existing
+            promotional-commitment policy applies. Soft targets may be relaxed
+            to keep your profit goal; no tier automatically locks an offer.
+            Required offers may lower profit if your current plan does not honor
+            them. No extra sales are assumed.
           </p>
           {show && (
             <div className="suggestion" aria-live="polite">
@@ -913,6 +951,16 @@ export default function MerchantView(p: MerchantProps) {
             </div>
           )}
         </section>
+        <TierSummary
+          skus={skus}
+          current={discounts}
+          suggested={recommendation.discounts}
+          rules={rules}
+          state={p.tiers}
+          goal={goal}
+          buffer={buffer}
+          a={a}
+        />
         <ProfitChart
           skus={skus}
           current={discounts}
@@ -921,15 +969,17 @@ export default function MerchantView(p: MerchantProps) {
           goal={goal}
           buffer={buffer}
           rules={rules}
+          tiers={p.tiers}
         />
         <section className="panel">
           <div className="panel-heading">
             <div>
               <h2>Which products need attention?</h2>
               <p>
-                Adjust offers individually or in bulk. Marking a product
-                Must-Promote keeps at least its current discount; edit that
-                commitment under Set Discounts.
+                Adjust offers individually or in bulk. The legacy Must-Promote
+                checkbox creates a hard minimum at the current offer. Merchant
+                tiers are separate, soft protection preferences; manage them
+                under Protect Your Important Products.
               </p>
             </div>
             <button className="secondary" onClick={out}>
@@ -1027,7 +1077,7 @@ export default function MerchantView(p: MerchantProps) {
                   <th>Discount (%)</th>
                   <th>Expected Sales</th>
                   <th>Profit After Variable Costs</th>
-                  <th>Must-Promote</th>
+                  <th>Explicit minimum commitment</th>
                 </tr>
               </thead>
               <tbody>
