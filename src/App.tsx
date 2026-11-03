@@ -79,12 +79,22 @@ function NumberField({
     </label>
   );
 }
-function Frontier({ points, floor }: { points: Point[]; floor: number }) {
+function Frontier({
+  points,
+  floor,
+  currentProfit,
+  buffer,
+}: {
+  points: Point[];
+  floor: number;
+  currentProfit: number;
+  buffer: number;
+}) {
   const [selected, setSelected] = useState(0);
   if (!points.length)
     return (
       <p className="empty">
-        Resolve required discount constraints to generate a feasible frontier.
+        Review the required offers and profit goal to generate this chart.
       </p>
     );
   const width = 900,
@@ -106,7 +116,7 @@ function Frontier({ points, floor }: { points: Point[]; floor: number }) {
         className="frontier"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="Contribution profit across cumulative discount allocations"
+        aria-label="Profit after variable costs across product discount steps"
       >
         {[lo, (hi + lo) / 2, hi].map((v, i) => (
           <g key={i}>
@@ -137,7 +147,7 @@ function Frontier({ points, floor }: { points: Point[]; floor: number }) {
           fill="#945424"
           fontSize="11"
         >
-          Profit floor · {money(floor)}
+          Minimum Profit Goal{buffer > 0 ? " + safety buffer" : ""} · {money(floor)}
         </text>
         <line x1={pad} x2={width - pad} y1={y(0)} y2={y(0)} stroke="#b2bebb" />
         <path
@@ -157,12 +167,13 @@ function Frontier({ points, floor }: { points: Point[]; floor: number }) {
             fill={p.belowFloor ? "#c56c3d" : "#087b66"}
           >
             <title>
-              {i}: {p.id} — {money(p.contribution)}
+              {i}: {p.id === "Required discounts" ? "Minimum Required Offers" : p.id}
+              {" — "}{money(p.contribution)}
             </title>
           </circle>
         ))}
         <text x={pad} y={height - 9} fontSize="11" fill="#6a7a78">
-          Required discounts
+          Minimum Required Offers
         </text>
         <text
           x={width - pad}
@@ -171,13 +182,13 @@ function Frontier({ points, floor }: { points: Point[]; floor: number }) {
           fontSize="11"
           fill="#6a7a78"
         >
-          Cumulative SKU allocations →
+          Product Discount Steps →
         </text>
       </svg>
       <label className="scrubber">
-        Explore allocation {at} of {points.length - 1}
+        Product Discount Step {at} of {points.length - 1}
         <input
-          aria-label="Explore frontier allocation"
+          aria-label="Explore product discount steps"
           type="range"
           min="0"
           max={points.length - 1}
@@ -187,16 +198,33 @@ function Frontier({ points, floor }: { points: Point[]; floor: number }) {
       </label>
       <div className="chart-foot">
         <span>
-          <b>{p.id}</b> · {money(p.contribution)} contribution{" "}
-          {p.belowFloor ? "· Below floor" : ""}
+          <b>{p.id === "Required discounts" ? "Minimum Required Offers" : p.id}</b>
+          {" · "}{money(p.contribution)} Profit After Variable Costs{" "}
+          {p.belowFloor ? "· Below minimum profit goal" : ""}
         </span>
         <span>
-          Floor crossing:{" "}
-          {floorCross === null ? "none" : `allocation ${floorCross.toFixed(2)}`}{" "}
-          · Zero crossing:{" "}
-          {zeroCross === null ? "none" : `allocation ${zeroCross.toFixed(2)}`}
+          Profit Goal Reached:{" "}
+          {floorCross === null
+            ? "no crossing below goal"
+            : points[0].contribution < floor
+              ? "starts below goal"
+              : `product discount step ${floorCross.toFixed(2)}`}{" "}
+          · Break-Even Point:{" "}
+          {zeroCross === null
+            ? "no crossing below break-even"
+            : points[0].contribution < 0
+              ? "starts below break-even"
+              : `product discount step ${zeroCross.toFixed(2)}`}
         </span>
       </div>
+      <p className="caption">
+        Current plan:{" "}
+        {currentProfit >= floor
+          ? `${money(currentProfit - floor)} of modeled profit headroom remains above the minimum profit goal${buffer > 0 ? " plus safety buffer" : ""}.`
+          : `${money(floor - currentProfit)} below the minimum profit goal${buffer > 0 ? " plus safety buffer" : ""}.`}
+        {" "}The goal and break-even results above describe the full discount path,
+        using the supplied costs and assumptions.
+      </p>
     </>
   );
 }
@@ -733,31 +761,50 @@ export default function App() {
                   <section className="panel chart-panel">
                     <div className="panel-heading">
                       <div>
-                        <h2>Cumulative profitability frontier</h2>
+                        <h2>How Much More Can You Discount?</h2>
                         <p>See how much room your campaign has to give.</p>
                       </div>
                       <span className="legend">
                         <i />
-                        Contribution profit
+                        Profit After Variable Costs
                       </span>
                     </div>
                     <Frontier
                       points={opt?.points ?? []}
                       floor={floor + buffer}
+                      currentProfit={c.contribution}
+                      buffer={buffer}
                     />
                     <p className="caption">
-                      Continuous weighted allocation: required minimums first,
-                      then descending allocation weight per dollar of
-                      contribution consumed; ties use SKU ID. P1 discounts are
-                      fixed at required minimums. The curve continues to maximum
-                      bounds to reveal breaches, independent of the scenario
-                      preview.
+                      This calculation progressively adds product discounts in
+                      the model’s allocation order. Each additional discount uses
+                      up profit. The minimum profit goal line
+                      {buffer > 0 ? " (including your safety buffer)" : ""} shows
+                      when further discounts would exceed your profit budget.
+                      The horizontal axis shows product discount steps, not time
+                      or a uniform storewide discount.
                     </p>
+                    <details>
+                      <summary>How this calculation works</summary>
+                      <p className="caption">
+                        This cumulative profitability frontier measures
+                        contribution profit (profit after variable costs).
+                        Continuous weighted allocation: required minimums first,
+                        then descending allocation weight per dollar of
+                        contribution consumed; ties use SKU ID. P1 discounts are
+                        fixed at required minimums. The curve continues to maximum
+                        bounds to reveal breaches, independent of the scenario
+                        preview. Crossing positions are interpolated by the
+                        existing model; a fractional step marks a boundary between
+                        product discount steps. The model holds expected sales
+                        fixed; discounts do not automatically increase demand.
+                      </p>
+                    </details>
                   </section>
                   <section className="panel">
                     <div className="panel-heading">
                       <div>
-                        <h2>Contribution by category</h2>
+                        <h2>Profit After Variable Costs by Category</h2>
                         <p>
                           Compare baseline and promotional profit, including
                           variable costs.
@@ -798,7 +845,7 @@ export default function App() {
                       );
                     })}
                     <p className="caption">
-                      Bar lengths show absolute contribution. Negative
+                      Bar lengths show absolute profit after variable costs. Negative
                       promotional values are orange and labeled with a minus
                       sign.
                     </p>

@@ -149,11 +149,11 @@ describe("browser planner interactions", () => {
   });
   it("explores frontier allocation using a keyboard-compatible range", () => {
     renderAdvanced();
-    change("Explore frontier allocation", "1");
-    expect(screen.getByText(/Explore allocation 1 of/)).toBeTruthy();
+    change("Explore product discount steps", "1");
+    expect(screen.getByText(/Product Discount Step 1 of/)).toBeTruthy();
     const chart = screen.getByRole("img", {
-      name: /Contribution profit across/,
+      name: /Profit after variable costs across/,
     });
-    expect(within(chart).getAllByText(/Profit floor/).length).toBe(1);
+    expect(within(chart).getAllByText(/Minimum Profit Goal/).length).toBe(1);
   });
 });
