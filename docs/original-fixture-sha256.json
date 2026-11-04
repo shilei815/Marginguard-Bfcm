@@ -1,0 +1,10 @@
+{
+  "MarginGuard_BFCM_Synthetic_QA_Dataset.xlsx": "1d8f366e5e0b92d21b82fc59b6f2aa00144fe5f486e4861c2f55e03ec01a8307",
+  "README": "72168787cda410ef42abb5fe5c7dea962dd91c8f4bb9bb8a95491037d1e1414d",
+  "README.txt": "db09f675830b636bf1b2acb32367952f0723da3690bc597a296a20962230ead4",
+  "assumptions_and_test_oracle.json": "0ef51254aaeef856a168d9d642aeb7c1d3af0863975ff8849a32102501d07e12",
+  "cumulative_frontier.csv": "9f33d083e1aeefa72730740d6203a219ea816b6c8f9916a4fa0273ebb07f7257",
+  "expected_scenarios.csv": "820e76d0354cd858ff9abd5c8dd64bd7f37065e272f8e5661c2cfd3e3071733f",
+  "optimization_steps.csv": "d1122c8e906d5f94a6d8c88c3d0d04f40272708009abe2046cf9814aaab98b82",
+  "sku_master.csv": "5da9469897bf66195dbb418253bd93ae766413e7e20d8ce8f25740e11ac00504"
+}
