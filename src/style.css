@@ -1,4 +1,8 @@
 :root {
+  /* AA contrast tokens: tested on white, pale green, and warning surfaces. */
+  --text-muted: #4f665b;
+  --control-border: #62796b;
+  --focus-ring: #945424;
   font-family:
     Inter,
     ui-sans-serif,
@@ -26,8 +30,14 @@ button,
 .button {
   cursor: pointer;
 }
-button:disabled {
-  opacity: 0.4;
+button:disabled,
+input:disabled,
+select:disabled {
+  /* Inactive controls are AA-exempt, but keep their labels readable. */
+  opacity: 1;
+  color: var(--text-muted);
+  background: #edf1ee;
+  border-color: var(--control-border);
   cursor: not-allowed;
 }
 button:focus-visible,
@@ -35,12 +45,12 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #e0a960;
+  outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
 }
 button,
 .button {
-  border: 1px solid #d7e0dc;
+  border: 1px solid var(--control-border);
   border-radius: 7px;
   padding: 10px 13px;
   background: #fff;
@@ -57,7 +67,7 @@ a {
 }
 input,
 select {
-  border: 1px solid #d7e0dc;
+  border: 1px solid var(--control-border);
   border-radius: 6px;
   padding: 9px 10px;
   background: #fff;
@@ -87,7 +97,7 @@ h3 {
   font-size: 13px;
 }
 p {
-  color: #72817b;
+  color: var(--text-muted);
   line-height: 1.6;
 }
 small {
@@ -135,12 +145,12 @@ small {
   display: block;
   font-size: 9px;
   letter-spacing: 2px;
-  color: #85958d;
+  color: var(--text-muted);
   margin-top: 5px;
 }
 .workspace-label {
   font-size: 9px;
-  color: #94a29a;
+  color: var(--text-muted);
   letter-spacing: 1.5px;
   font-weight: 700;
   margin: 0 12px 15px;
@@ -152,11 +162,12 @@ nav {
 nav a {
   text-decoration: none;
   padding: 12px 10px;
-  color: #78847e;
+  color: var(--text-muted);
   font-size: 12px;
   border-radius: 7px;
 }
 nav a.active {
+  box-shadow: inset 3px 0 0 #087b66;
   color: #087b66;
   background: #e9f4ef;
   font-weight: 650;
@@ -168,7 +179,7 @@ nav a.active {
   border-radius: 9px;
   padding: 15px;
   font-size: 10px;
-  color: #7c8c82;
+  color: var(--text-muted);
 }
 .sidebar-bottom b {
   display: block;
@@ -185,7 +196,7 @@ nav a.active {
   font-size: 22px;
 }
 .local-dot {
-  color: #25866b;
+  color: #087b66;
 }
 main {
   margin-left: 228px;
@@ -200,18 +211,18 @@ main {
   justify-content: space-between;
   padding: 0 36px;
   font-size: 11px;
-  color: #78867f;
+  color: var(--text-muted);
   background: #fff;
 }
 .slash {
   margin: 0 12px;
-  color: #bac6bf;
+  color: var(--text-muted);
 }
 .badge {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1px;
-  color: #5d7f6e;
+  color: var(--text-muted);
   border: 1px solid #dce6df;
   background: #f8faf8;
   border-radius: 5px;
@@ -289,13 +300,13 @@ h1 {
 }
 .data-strip small {
   display: block;
-  color: #8b9890;
+  color: var(--text-muted);
   margin-top: 5px;
   font-size: 10px;
 }
 .data-icon {
   font-size: 24px;
-  color: #4b8f77;
+  color: var(--text-muted);
   background: #edf4ee;
   border-radius: 8px;
   padding: 6px 10px;
@@ -313,7 +324,7 @@ h1 {
   padding: 0;
 }
 .button:focus-within {
-  outline: 3px solid #e0a960;
+  outline: 3px solid var(--focus-ring);
 }
 .workspace-grid {
   display: grid;
@@ -329,7 +340,7 @@ h1 {
 .subtle {
   border: 0;
   background: transparent;
-  color: #8c9c91;
+  color: var(--text-muted);
   font-size: 8px;
 }
 .cards {
@@ -347,7 +358,7 @@ h1 {
 }
 .card > span {
   font-size: 11px;
-  color: #718278;
+  color: var(--text-muted);
 }
 .card strong {
   display: block;
@@ -356,7 +367,7 @@ h1 {
   margin: 11px 0 6px;
 }
 .card small {
-  color: #8b9b91;
+  color: var(--text-muted);
   font-size: 10px;
 }
 .card-delta {
@@ -367,7 +378,7 @@ h1 {
   color: #52675a;
 }
 .card-delta span {
-  color: #8b9b91;
+  color: var(--text-muted);
   font-size: 9px;
 }
 .featured {
@@ -428,7 +439,7 @@ h1 {
 }
 .legend {
   font-size: 9px;
-  color: #8a978f;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 .legend i {
@@ -448,12 +459,12 @@ h1 {
   justify-content: space-between;
   gap: 10px;
   font-size: 9px;
-  color: #76897b;
+  color: var(--text-muted);
   margin: 10px 0 16px;
 }
 .scrubber {
   font-size: 10px;
-  color: #718278;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   gap: 15px;
@@ -464,7 +475,7 @@ h1 {
 .caption {
   font-size: 10px;
   line-height: 1.7;
-  color: #89968c;
+  color: var(--text-muted);
   margin-top: 10px;
 }
 .controls .panel {
@@ -489,19 +500,19 @@ h1 {
   background: transparent;
   padding: 9px 3px;
   box-shadow: none;
-  color: #849188;
+  color: var(--text-muted);
 }
 .tabs .selected {
   background: white;
   color: #087b66;
-  box-shadow: 0 1px 3px #123b2020;
+  box-shadow: inset 0 -3px 0 #087b66, 0 1px 3px #123b2020;
 }
 .field {
   display: flex;
   flex-direction: column;
   gap: 7px;
   font-size: 10px;
-  color: #718278;
+  color: var(--text-muted);
   margin: 15px 0;
 }
 .field input,
@@ -525,7 +536,7 @@ h1 {
 .range-labels {
   display: flex;
   justify-content: space-between;
-  color: #94a199;
+  color: var(--text-muted);
   font-size: 9px;
   margin-top: 7px;
   margin-bottom: 20px;
@@ -566,7 +577,7 @@ details {
 }
 .priority-row small {
   display: block;
-  color: #819187;
+  color: var(--text-muted);
   margin-top: 4px;
   font-size: 9px;
 }
@@ -577,7 +588,7 @@ details {
   display: flex;
   gap: 12px;
   padding: 0 7px;
-  color: #79917e;
+  color: var(--text-muted);
 }
 .model-note b {
   font-size: 11px;
@@ -606,7 +617,7 @@ details {
   align-items: center;
   font-size: 10px;
   gap: 5px;
-  color: #7b8a80;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 .table-scroll {
@@ -621,7 +632,7 @@ table {
 }
 th {
   font-size: 9px;
-  color: #819086;
+  color: var(--text-muted);
   font-weight: 500;
   background: #f6f8f5;
   padding: 12px 9px;
@@ -641,7 +652,7 @@ td b {
 }
 td small {
   display: block;
-  color: #95a297;
+  color: var(--text-muted);
   margin: 3px 0;
   font-size: 8px;
 }
@@ -655,29 +666,29 @@ td input.discount-input {
   padding: 4px 7px;
   background: #f0f4ef;
   border-radius: 4px;
-  color: #879783;
+  color: var(--text-muted);
   font-size: 9px;
 }
 .priority.P1 {
   background: #f8efe5;
-  color: #aa7846;
+  color: #805b1d;
 }
 .priority.P2 {
   background: #eaf2ec;
-  color: #6d947c;
+  color: var(--text-muted);
 }
 .loss {
-  color: #bd6046 !important;
+  color: #9b452d !important;
 }
 .profit {
-  color: #338366;
+  color: #087b66;
 }
 .pagination {
   display: flex;
   gap: 8px;
   align-items: center;
   padding-top: 15px;
-  color: #93a091;
+  color: var(--text-muted);
   font-size: 9px;
 }
 .pagination span {
@@ -722,7 +733,7 @@ footer {
   display: flex;
   justify-content: space-between;
   font-size: 10px;
-  color: #8fa091;
+  color: var(--text-muted);
   padding: 10px 0 25px;
 }
 @media (min-width: 1550px) {
@@ -915,7 +926,7 @@ footer {
   gap: 18px;
   font-size: 10px;
   margin-bottom: 18px;
-  color: #b4c7b9;
+  color: var(--text-muted);
 }
 .category-legend span + span {
   color: #087b66;
@@ -927,7 +938,7 @@ footer {
   gap: 15px;
   margin: 16px 0;
   font-size: 10px;
-  color: #738778;
+  color: var(--text-muted);
 }
 .category-chart b {
   font-size: 10px;
@@ -949,10 +960,10 @@ footer {
   margin: 4px 0;
 }
 .bar.baseline {
-  background: #c9dbce;
+  background: #62796b;
 }
 .bar.negative {
-  background: #c56c3d;
+  background: #a45336;
 }
 @media (max-width: 600px) {
   .category-chart {
@@ -1628,7 +1639,7 @@ footer {
   font-size: 12px;
 }
 .tier-report-cards small {
-  color: #627c6b;
+  color: var(--text-muted);
 }
 .tier-section .table-scroll,
 .tier-report .table-scroll {
@@ -1685,7 +1696,7 @@ footer {
 .unified-import .data-strip b {
   display: block;
   margin-top: 6px;
-  color: #6e8376;
+  color: var(--text-muted);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
@@ -1723,7 +1734,7 @@ footer {
 }
 .cost-quality .section-title > span {
   font-size: 11px;
-  color: #6b7c70;
+  color: var(--text-muted);
 }
 .cost-quality p {
   font-size: 12px;
@@ -1831,4 +1842,41 @@ footer {
 
 .unified-import li {
   overflow-wrap: anywhere;
+}
+
+/* Native placeholder text must remain legible alongside entered values. */
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+/* Keep native range semantics while making track and thumb boundaries visible. */
+input[type="range"] {
+  appearance: none;
+  background: transparent;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 3px;
+  background: var(--control-border);
+}
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 3px;
+  background: var(--control-border);
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #087b66;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #087b66;
 }

@@ -34,7 +34,7 @@ before public beta, P1 should be addressed before or during beta, P2 can defer.
 | Production dependency advisory scan | PASS | `npm audit --omit=dev --json`: 0 known vulnerabilities at audit time. |
 | Development dependency advisory scan | FAIL | P1-01: 3 affected dev dependency nodes, including critical advisories; see scope below. |
 | Chromium responsive workflows / sampled keyboard / named controls | PASS | 100 layout/state checks at six widths; sampled native keyboard events; 45 inspected Advanced AX controls named. |
-| Caption text contrast | FAIL | P1-02: measured #89968c on white ≈3.09:1, below 4.5:1 for normal text. No WCAG conformance claim. |
+| Caption text contrast | PASS on fix branch | P1-02 remediated in `fix/beta-accessibility-contrast`, pending review/merge into RC. Evidence and limits below; not full WCAG conformance. |
 | Physical Safari/iOS/Android, Firefox, screen readers | NOT VERIFIED | P1-03: no physical devices, Firefox or assistive-technology testing performed. |
 | Real merchant financial input / usability acceptance | NOT VERIFIED | P1-04: synthetic data and worked cases are not merchant acceptance or a sales forecast. |
 | Cloudflare current Production branch / preview isolation / hosting headers | NOT VERIFIED | P0-02 operational hold: no Cloudflare read connector/configuration available; requested owner confirmation. GitHub default `main` is verified and is not evidence of Cloudflare's branch. |
@@ -251,7 +251,7 @@ and alert semantics, not a custom modal dialog. Screenshots of Simple desktop an
 Advanced mobile/chart were visually inspected. This is sampled browser QA, not a
 complete keyboard or assistive-technology audit.
 
-**P1-02:** the inspected chart caption is 12px, rgb(137,150,140) on white;
+**Historical Stage 3A P1-02 finding (remediated on the Stage 3A.1 fix branch):** the inspected chart caption was 12px, rgb(137,150,140) on white;
 calculated contrast ≈3.09:1 falls below WCAG normal-text 4.5:1. Improve shared
 secondary-text colors in a separate accessibility fix with visual regression
 review. Do not claim accessibility compliance now. Physical Safari/Firefox,
@@ -281,3 +281,71 @@ is still recommended before inviting merchants. No unresolved P0 arithmetic,
 hard-rule recommendation, export-injection or import-transaction defect was found
 in the reviewed/tested scope. See [known limits](BETA_KNOWN_LIMITATIONS.md),
 [user guide](BETA_USER_GUIDE.md) and [deployment runbook](DEPLOYMENT_RUNBOOK.md).
+
+
+## Stage 3A.1 — P1-02 contrast remediation
+
+Prepared on `fix/beta-accessibility-contrast` from RC `3387e7f`. This evidence
+applies to the fix branch; `release/beta-1` is not changed until a separately
+reviewed merge. No production deployment or Cloudflare changes were performed.
+The original Stage 3A test/security results above remain historical evidence.
+
+The rendered audit covered secondary copy, captions, helper/placeholder text,
+form descriptions, warnings, pale green cost/tier cards, table headers, priority
+badges, SVG labels, meaningful chart marks and input/button boundaries in both
+modes. It also checked disabled controls, selected mode/navigation indicators,
+hover and visible keyboard focus. Pale surfaces were preserved. Shared muted text
+is now `#4f665b`; control boundaries `#62796b`; the focus ring uses the existing
+amber family at `#945424`. Profit accents remain MarginGuard green `#087b66`.
+Warnings/loss text retain darker brown/red emphasis. Disabled controls keep native
+`disabled` semantics and their not-allowed cursor, using readable opaque text on
+an inactive gray-green fill instead of 40% opacity. Range tracks/thumb boundaries
+are styled for visibility without changing native range input semantics.
+
+WCAG sRGB relative-luminance ratios (unrounded values determine pass/fail):
+
+| Representative component / actual background | Before | After | AA target |
+| --- | ---: | ---: | ---: |
+| Caption / white | 3.09:1 | 6.21:1 | 4.5:1 |
+| Helper paragraph / complete cost card `#eef6ef` | 3.71:1 | 5.63:1 | 4.5:1 |
+| Caption / warning panel `#fcfaf4` | 2.96:1 | 5.95:1 | 4.5:1 |
+| Table header / `#f6f8f5` | 3.14:1 | 5.81:1 | 4.5:1 |
+| P1 badge / `#f8efe5` | 3.37:1 | 5.38:1 | 4.5:1 |
+| P2 badge / `#eaf2ec` | 2.98:1 | 5.44:1 | 4.5:1 |
+| Form boundary / white | 1.35:1 | 4.70:1 | 3:1 |
+| Baseline category bar / white | 1.45:1 | 4.70:1 | 3:1 |
+| Focus outline / white | 2.10:1 | 5.91:1 | 3:1 |
+
+`src/contrast.test.ts` adds 33 automated regression cases using actual stylesheet
+values for representative text, badges, status/disabled fills, all eight tested
+surfaces, range tracks and control/focus boundaries. Normal text requires 4.5:1;
+the browser audit permits 3:1 only for large text (24px, or 18.67px bold) and
+relevant non-text marks. Inactive controls are contrast-exempt under WCAG, but
+this fix deliberately improves and checks their text too.
+
+`scripts/contrast-audit.mjs`, called from every existing browser layout/state
+check, examines rendered HTML/SVG colors, inherited/translucent backgrounds,
+placeholder text, chart marks, selected indicators and focus outlines. It asserts
+thresholds by default. `CONTRAST_ALLOW_FAILURES=1` is for diagnostic before/after
+auditing only, never an acceptance run. Decorative panel/table separators and SVG
+grid lines are not treated as meaningful UI boundaries. Native OS dropdown,
+checkbox rendering, forced-colors themes and all possible paint/compositing cases
+are not certified by this scanner.
+
+Verification: `npm test` → `npm run build` → `npm test` passed, **247 tests in
+12 files on both runs**, including all 214 release-candidate tests. Production
+build passed strict TypeScript/Vite checks. Chromium browser QA additionally
+passed **101 layout/state checks** at 320, 375, 390, 430, 768 and 1440px, with
+no recorded contrast failures across **48,485 sampled checks** (including 645
+inactive-control samples), runtime exceptions or external page requests. The
+lowest sampled text ratio was 4.62:1; control boundaries 4.24:1, meaningful chart
+marks 3.75:1 and focus outlines 5.91:1.
+Keyboard chart, disclosure and suggestion checks continue to pass. Desktop and
+mobile screenshots were inspected. Financial engines, rules, CSV contracts,
+exports, fixture datasets and dependency manifests are unchanged; TSX changes
+only adjust SVG paint colors, never geometry, data or calculations.
+
+P1-02 is remediated on this branch, pending review/merge. This is **contrast
+remediation, not a full WCAG AA compliance claim**. Physical Safari/Firefox,
+screen readers, comprehensive keyboard/zoom/touch testing and the other Stage 3A
+release gates remain unverified or open as previously documented.

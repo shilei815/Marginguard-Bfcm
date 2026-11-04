@@ -7,14 +7,16 @@ See the [audit](BETA_RELEASE_AUDIT.md) for executed tests and evidence.
 ## Release findings
 
 P0 = must close before public beta. P1 = should fix before or during beta.
-P2 = can defer. Only the reproduced P0 disclosure defect was fixed during freeze.
+P2 = can defer. Stage 3A fixed only the reproduced P0 disclosure defect. Stage 3A.1 additionally
+prepares the explicitly authorized P1-02 contrast remediation on
+`fix/beta-accessibility-contrast`; it does not merge or deploy the RC.
 
 | ID | Priority | Status | Finding / recommended action |
 | --- | --- | --- | --- |
 | P0-01 | P0 | RESOLVED | Rounded displayed offers could be mistaken for verified full-precision rates. Added checkout-rounding warning in both recommendation workflows; arithmetic/export unchanged. Revalidate actual checkout rates. |
 | P0-02 | P0 | NOT VERIFIED — release hold | Cloudflare's current Production branch, automatic deployment triggers and preview isolation are unknown. Record read-only owner/dashboard evidence and review preview before authorizing public release. GitHub default `main` does not establish hosting settings. |
 | P1-01 | P1 | OPEN | npm reports development-only Vitest/mocker/tinypool advisories, including critical severities. Review compatible upgrades separately; isolate build/test environments and do not expose development servers. Production-only audit reports zero known vulnerabilities at audit time. |
-| P1-02 | P1 | OPEN | Secondary chart caption text measured ~3.09:1 contrast on white, below 4.5:1 for normal text. Improve shared text contrast in a separate reviewed fix. No WCAG conformance claim. |
+| P1-02 | P1 | REMEDIATED ON FIX BRANCH — pending merge | Stage 3A.1 darkens shared secondary text, chart paint, control/focus boundaries and disabled labels. Caption contrast improves from 3.09:1 to 6.21:1 on white; helper copy reaches 5.63:1 on pale green. 33 new contrast regression tests and 101 Chromium layout/state checks pass. Evidence in the audit; no full WCAG conformance claim. |
 | P1-03 | P1 | NOT VERIFIED | Physical Safari/iOS/Android, Firefox, screen readers, full keyboard coverage, touch/virtual keyboard and zoom/OS scaling. Perform representative manual checks; Chromium emulation is not a substitute. |
 | P1-04 | P1 | NOT VERIFIED | Real-merchant input reconciliation and usability acceptance. Review representative data privately with its owner, including returns, fees, per-unit allocations and cost completeness. Do not treat synthetic fixture success as commercial validation. |
 | P2-01 | P2 | OPEN | Bulk tier assignment of a previously unassigned literal `__proto__` SKU does not retain an own assignment. No global prototype change was observed; unified tier CSV mapping works. Avoid that literal ID for bulk assignment; add a dictionary regression fix in later maintenance. |
@@ -46,3 +48,16 @@ violation was found in the reviewed/tested scope.
 - Exports are local review artifacts, including manual plans with warnings. Not all report formats are product-import formats. Formula escaping may prefix dangerous identifiers with an apostrophe; do not assume arbitrary report round trips preserve identifiers.
 - Data is local to the running browser, but downloads, shared screenshots, extensions, device access and hosting access logs need separate care. There is no security/legal certification or guarantee.
 - No deployment, hosting-header inspection, production smoke test or rollback exercise has occurred in this audit. No paid services or new infrastructure are required by this candidate.
+
+
+## Contrast remediation coverage and remaining limits
+
+Stage 3A.1 verifies normal text at 4.5:1, large text at 3:1 and relevant control,
+chart and focus marks at 3:1 in the measured Simple/Advanced states. This includes
+white, pale green, warning and inactive-control surfaces. Color-only presentation
+changes preserve financial behavior, hierarchy, responsive layouts and native
+disabled/range semantics. See the audit's before/after table and reproducible
+checks. Remaining P1-03 checks are still required: these contrast results do not
+certify screen-reader usability, all keyboard interactions, browser/OS native
+control paints, forced colors, zoom behavior or full WCAG compliance. The fix
+branch must be reviewed and merged separately before it changes `release/beta-1`.
