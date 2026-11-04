@@ -13,13 +13,14 @@
   color: #19352f;
   background: #f5f7f6;
   font-synthesis: none;
-  font-size: 14px;
+  font-size: 16px;
 }
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
+  line-height: 1.5;
 }
 button,
 input,
@@ -90,18 +91,18 @@ p {
   margin: 0;
 }
 h2 {
-  font-size: 17px;
+  font-size: 1.25rem;
   letter-spacing: -0.4px;
 }
 h3 {
-  font-size: 13px;
+  font-size: 1.125rem;
 }
 p {
   color: var(--text-muted);
   line-height: 1.6;
 }
 small {
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .app {
   display: flex;
@@ -143,13 +144,13 @@ small {
 }
 .brand-sub {
   display: block;
-  font-size: 9px;
+  font-size: .75rem;
   letter-spacing: 2px;
   color: var(--text-muted);
   margin-top: 5px;
 }
 .workspace-label {
-  font-size: 9px;
+  font-size: .75rem;
   color: var(--text-muted);
   letter-spacing: 1.5px;
   font-weight: 700;
@@ -163,7 +164,7 @@ nav a {
   text-decoration: none;
   padding: 12px 10px;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: .875rem;
   border-radius: 7px;
 }
 nav a.active {
@@ -178,17 +179,17 @@ nav a.active {
   border: 1px solid #e7ece9;
   border-radius: 9px;
   padding: 15px;
-  font-size: 10px;
+  font-size: .8125rem;
   color: var(--text-muted);
 }
 .sidebar-bottom b {
   display: block;
-  font-size: 12px;
+  font-size: .875rem;
   color: #34574a;
   margin: 12px 0 6px;
 }
 .sidebar-bottom p {
-  font-size: 11px;
+  font-size: .8125rem;
   margin-bottom: 15px;
 }
 .lock {
@@ -210,7 +211,7 @@ main {
   align-items: center;
   justify-content: space-between;
   padding: 0 36px;
-  font-size: 11px;
+  font-size: .8125rem;
   color: var(--text-muted);
   background: #fff;
 }
@@ -219,7 +220,7 @@ main {
   color: var(--text-muted);
 }
 .badge {
-  font-size: 9px;
+  font-size: .75rem;
   font-weight: 700;
   letter-spacing: 1px;
   color: var(--text-muted);
@@ -245,7 +246,7 @@ main {
   margin-bottom: 25px;
 }
 .eyebrow {
-  font-size: 9px;
+  font-size: .75rem;
   letter-spacing: 1.7px;
   font-weight: 750;
   color: #087b66;
@@ -258,23 +259,23 @@ h1 {
   margin-bottom: 10px;
 }
 .heading p {
-  font-size: 12px;
+  font-size: 1rem;
 }
 .secondary {
-  font-size: 11px;
+  font-size: .875rem;
   box-shadow: 0 1px 2px #123b2010;
 }
 .primary {
   color: white;
   background: #087b66;
   border-color: #087b66;
-  font-size: 11px;
+  font-size: .875rem;
 }
 .text-button {
   border: 0;
   background: transparent;
   color: #087b66;
-  font-size: 11px;
+  font-size: .875rem;
   padding: 8px;
 }
 .data-strip {
@@ -295,14 +296,14 @@ h1 {
   min-width: 0;
 }
 .data-strip b {
-  font-size: 11px;
+  font-size: .8125rem;
   overflow-wrap: anywhere;
 }
 .data-strip small {
   display: block;
   color: var(--text-muted);
   margin-top: 5px;
-  font-size: 10px;
+  font-size: .8125rem;
 }
 .data-icon {
   font-size: 24px;
@@ -341,7 +342,7 @@ h1 {
   border: 0;
   background: transparent;
   color: var(--text-muted);
-  font-size: 8px;
+  font-size: .75rem;
 }
 .cards {
   display: grid;
@@ -357,7 +358,7 @@ h1 {
   overflow: hidden;
 }
 .card > span {
-  font-size: 11px;
+  font-size: .8125rem;
   color: var(--text-muted);
 }
 .card strong {
@@ -368,10 +369,10 @@ h1 {
 }
 .card small {
   color: var(--text-muted);
-  font-size: 10px;
+  font-size: .8125rem;
 }
 .card-delta {
-  font-size: 10px;
+  font-size: .8125rem;
   padding-top: 13px;
   border-top: 1px solid #eaf0eb;
   margin-top: 15px;
@@ -379,7 +380,7 @@ h1 {
 }
 .card-delta span {
   color: var(--text-muted);
-  font-size: 9px;
+  font-size: .75rem;
 }
 .featured {
   background: #eaf4ee;
@@ -392,7 +393,7 @@ h1 {
   border: 1px solid #ebdfc7;
   background: #fcf8ef;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: .875rem;
   padding: 12px 14px;
   margin: 0 0 16px;
   line-height: 1.6;
@@ -403,7 +404,7 @@ h1 {
   margin-right: 10px;
 }
 .notice span {
-  font-size: 10px;
+  font-size: .8125rem;
 }
 .success {
   color: #2d7757;
@@ -434,11 +435,11 @@ h1 {
   margin-bottom: 19px;
 }
 .panel-heading p {
-  font-size: 10px;
+  font-size: .875rem;
   margin-top: 7px;
 }
 .legend {
-  font-size: 9px;
+  font-size: .8125rem;
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -458,12 +459,12 @@ h1 {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  font-size: 9px;
+  font-size: .8125rem;
   color: var(--text-muted);
   margin: 10px 0 16px;
 }
 .scrubber {
-  font-size: 10px;
+  font-size: .8125rem;
   color: var(--text-muted);
   display: flex;
   align-items: center;
@@ -473,7 +474,7 @@ h1 {
   max-width: 220px;
 }
 .caption {
-  font-size: 10px;
+  font-size: .875rem;
   line-height: 1.7;
   color: var(--text-muted);
   margin-top: 10px;
@@ -482,7 +483,7 @@ h1 {
   padding: 20px;
 }
 .controls .eyebrow {
-  font-size: 8px;
+  font-size: .75rem;
   margin-bottom: 7px;
 }
 .tabs {
@@ -496,7 +497,7 @@ h1 {
 .tabs button {
   flex: 1;
   border: 0;
-  font-size: 10px;
+  font-size: .875rem;
   background: transparent;
   padding: 9px 3px;
   box-shadow: none;
@@ -511,14 +512,14 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 7px;
-  font-size: 10px;
+  font-size: .875rem;
   color: var(--text-muted);
   margin: 15px 0;
 }
 .field input,
 .field select {
   width: 100%;
-  font-size: 12px;
+  font-size: 1rem;
 }
 .range-heading {
   display: flex;
@@ -527,7 +528,7 @@ h1 {
   margin: 23px 0 16px;
 }
 .range-heading b {
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .range-heading strong {
   font-size: 18px;
@@ -537,12 +538,12 @@ h1 {
   display: flex;
   justify-content: space-between;
   color: var(--text-muted);
-  font-size: 9px;
+  font-size: .75rem;
   margin-top: 7px;
   margin-bottom: 20px;
 }
 summary {
-  font-size: 11px;
+  font-size: .875rem;
   font-weight: 600;
   cursor: pointer;
   line-height: 1.5;
@@ -573,13 +574,13 @@ details {
   align-items: center;
   border-bottom: 1px solid #e4ece6;
   padding: 12px 0;
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .priority-row small {
   display: block;
   color: var(--text-muted);
   margin-top: 4px;
-  font-size: 9px;
+  font-size: .75rem;
 }
 .priority-row button {
   padding: 2px 6px;
@@ -591,10 +592,10 @@ details {
   color: var(--text-muted);
 }
 .model-note b {
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .model-note p {
-  font-size: 10px;
+  font-size: .875rem;
   margin-top: 6px;
 }
 .table-filters {
@@ -607,15 +608,15 @@ details {
 .table-filters > input {
   flex: 1;
   min-width: 120px;
-  font-size: 10px;
+  font-size: .8125rem;
 }
 .table-filters select {
-  font-size: 10px;
+  font-size: .8125rem;
 }
 .checkbox {
   display: flex;
   align-items: center;
-  font-size: 10px;
+  font-size: .875rem;
   gap: 5px;
   color: var(--text-muted);
   white-space: nowrap;
@@ -627,18 +628,18 @@ table {
   border-collapse: collapse;
   width: 100%;
   text-align: left;
-  font-size: 10px;
+  font-size: .8125rem;
   white-space: nowrap;
 }
 th {
-  font-size: 9px;
+  font-size: .75rem;
   color: var(--text-muted);
   font-weight: 500;
   background: #f6f8f5;
   padding: 12px 9px;
 }
 th small {
-  font-size: 8px;
+  font-size: .75rem;
 }
 td {
   padding: 14px 9px;
@@ -646,7 +647,7 @@ td {
   color: #4e6356;
 }
 td b {
-  font-size: 10px;
+  font-size: .8125rem;
   color: #385243;
   font-weight: 550;
 }
@@ -654,12 +655,12 @@ td small {
   display: block;
   color: var(--text-muted);
   margin: 3px 0;
-  font-size: 8px;
+  font-size: .75rem;
 }
 td input.discount-input {
   width: 58px;
   padding: 5px;
-  font-size: 10px;
+  font-size: .8125rem;
 }
 .priority {
   display: inline-block;
@@ -667,7 +668,7 @@ td input.discount-input {
   background: #f0f4ef;
   border-radius: 4px;
   color: var(--text-muted);
-  font-size: 9px;
+  font-size: .75rem;
 }
 .priority.P1 {
   background: #f8efe5;
@@ -689,19 +690,19 @@ td input.discount-input {
   align-items: center;
   padding-top: 15px;
   color: var(--text-muted);
-  font-size: 9px;
+  font-size: .75rem;
 }
 .pagination span {
   margin-right: auto;
 }
 .pagination button {
-  font-size: 9px;
+  font-size: .75rem;
   padding: 5px 8px;
 }
 .empty {
   padding: 30px;
   text-align: center;
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .snapshot {
   display: flex;
@@ -710,7 +711,7 @@ td input.discount-input {
 }
 .snapshot input {
   flex: 1;
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .methodology {
   margin-top: 5px;
@@ -723,16 +724,16 @@ td input.discount-input {
   margin-top: 22px;
 }
 .method-grid h3 {
-  font-size: 11px;
+  font-size: 1.125rem;
   margin-bottom: 8px;
 }
 .method-grid p {
-  font-size: 10px;
+  font-size: .875rem;
 }
 footer {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: .8125rem;
   color: var(--text-muted);
   padding: 10px 0 25px;
 }
@@ -764,9 +765,6 @@ footer {
   }
   .card strong {
     font-size: 23px;
-  }
-  .legend {
-    display: none;
   }
   .card-delta span {
     display: block;
@@ -806,7 +804,7 @@ footer {
     font-size: 20px;
   }
   .card > span {
-    font-size: 10px;
+    font-size: .8125rem;
   }
   .chart-foot {
     flex-direction: column;
@@ -851,11 +849,11 @@ footer {
     margin-top: 10px;
   }
   .heading .secondary {
-    font-size: 9px;
+    font-size: .875rem;
     padding: 8px;
   }
   .heading p {
-    font-size: 11px;
+    font-size: 1rem;
   }
   .controls .panel {
     margin-bottom: 5px;
@@ -878,7 +876,7 @@ footer {
     font-size: 20px;
   }
   .card small {
-    font-size: 9px;
+    font-size: .75rem;
   }
   .cards {
     gap: 6px;
@@ -924,7 +922,7 @@ footer {
 .category-legend {
   display: flex;
   gap: 18px;
-  font-size: 10px;
+  font-size: .8125rem;
   margin-bottom: 18px;
   color: var(--text-muted);
 }
@@ -937,16 +935,16 @@ footer {
   align-items: center;
   gap: 15px;
   margin: 16px 0;
-  font-size: 10px;
+  font-size: .8125rem;
   color: var(--text-muted);
 }
 .category-chart b {
-  font-size: 10px;
+  font-size: .8125rem;
   font-weight: 500;
 }
 .category-chart span {
   text-align: right;
-  font-size: 9px;
+  font-size: .75rem;
 }
 .category-chart strong {
   color: #087b66;
@@ -988,7 +986,7 @@ footer {
   color: #087b66;
 }
 .merchant-brand small {
-  font-size: 10px;
+  font-size: .8125rem;
   letter-spacing: 2px;
   padding-left: 10px;
 }
@@ -1010,7 +1008,7 @@ footer {
 .step-nav a {
   background: #edf3ee;
   color: #355b48;
-  font-size: 12px;
+  font-size: .875rem;
   padding: 10px 14px;
 }
 .merchant-cards {
@@ -1021,7 +1019,7 @@ footer {
   font-size: 30px;
 }
 .merchant-cards .card > span {
-  font-size: 12px;
+  font-size: .875rem;
 }
 .merchant-grid {
   display: grid;
@@ -1034,19 +1032,19 @@ footer {
   min-width: 0;
 }
 .merchant-shell p {
-  font-size: 12px;
+  font-size: .9375rem;
 }
 .merchant-shell .caption {
-  font-size: 12px;
+  font-size: .875rem;
 }
 .merchant-shell .field {
-  font-size: 12px;
+  font-size: .875rem;
 }
 .merchant-shell .field input {
   font-size: 16px;
 }
 .merchant-shell summary {
-  font-size: 12px;
+  font-size: .875rem;
 }
 .merchant-shell .data-strip {
   margin-bottom: 10px;
@@ -1064,7 +1062,7 @@ footer {
   margin: 12px 0 15px;
 }
 .plan-status {
-  font-size: 12px;
+  font-size: .875rem;
   padding: 8px 12px;
   border-radius: 6px;
   font-weight: 650;
@@ -1082,12 +1080,12 @@ footer {
   color: #a13e24;
 }
 .merchant-shell .notice {
-  font-size: 12px;
+  font-size: .875rem;
 }
 .merchant-shell .notice > span {
   display: block;
   margin-top: 6px;
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .warning-summary {
   max-height: 340px;
@@ -1112,7 +1110,7 @@ footer {
   margin-top: 10px;
 }
 .merchant-shell .checkbox {
-  font-size: 12px;
+  font-size: .875rem;
   white-space: normal;
 }
 .must-promote > input {
@@ -1137,13 +1135,13 @@ footer {
 }
 .suggestion td {
   white-space: normal;
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .suggestion h3 {
   margin-bottom: 12px;
 }
 .suggestion details p {
-  font-size: 11px;
+  font-size: .8125rem;
   padding: 4px 0;
 }
 .simple-chart svg {
@@ -1166,27 +1164,27 @@ footer {
   scroll-margin-top: 90px;
 }
 .merchant-shell table {
-  font-size: 12px;
+  font-size: .875rem;
 }
 .merchant-shell th {
-  font-size: 11px;
+  font-size: .8125rem;
 }
 .merchant-shell td b {
-  font-size: 12px;
+  font-size: .875rem;
 }
 .merchant-shell td small {
-  font-size: 10px;
+  font-size: .8125rem;
 }
 .merchant-shell td input[type="checkbox"] {
   width: 18px;
   height: 18px;
 }
 .merchant-shell .discount-input {
-  font-size: 12px;
+  font-size: .875rem;
   width: 85px;
 }
 .merchant-shell footer {
-  font-size: 11px;
+  font-size: .8125rem;
   gap: 15px;
 }
 .merchant-shell .panel-heading {
@@ -1222,7 +1220,7 @@ footer {
     height: auto;
   }
   .merchant-shell .chart-foot {
-    font-size: 11px;
+    font-size: .8125rem;
   }
   .merchant-shell .card strong {
     font-size: 28px;
@@ -1232,7 +1230,7 @@ footer {
     grid-template-columns: 1fr 1fr;
   }
   .merchant-shell .step-nav a {
-    font-size: 11px;
+    font-size: .875rem;
     margin: 0;
     padding: 9px;
   }
@@ -1260,10 +1258,10 @@ footer {
     justify-content: flex-start;
   }
   .merchant-shell .data-strip .button {
-    font-size: 12px;
+    font-size: .875rem;
   }
   .merchant-shell .topbar button {
-    font-size: 12px;
+    font-size: .875rem;
   }
   .merchant-shell .heading h1 {
     font-size: 25px;
@@ -1338,7 +1336,7 @@ footer {
   gap: 16px;
   justify-content: space-between;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: .875rem;
   margin: 10px 0;
 }
 .unchanged-plan p {
@@ -1464,7 +1462,7 @@ footer {
   }
   .app .field,
   .app .checkbox {
-    font-size: 12px;
+    font-size: .875rem;
     white-space: normal;
     overflow-wrap: anywhere;
   }
@@ -1481,7 +1479,7 @@ footer {
   }
   .app .caption,
   .app .chart-foot {
-    font-size: 12px;
+    font-size: .875rem;
   }
   .app .chart-foot {
     flex-wrap: wrap;
@@ -1562,7 +1560,7 @@ footer {
     display: inline-flex;
     white-space: normal;
     flex-wrap: wrap;
-    font-size: 11px;
+    font-size: .8125rem;
   }
 }
 /* Merchant tiers remain separate from legacy file priorities and hard-rule controls. */
@@ -1574,7 +1572,7 @@ footer {
 }
 .tier-section h3,
 .tier-report h3 {
-  font-size: 14px;
+  font-size: 1.125rem;
 }
 .tier-defaults,
 .tier-override-fields,
@@ -1593,7 +1591,7 @@ footer {
 }
 .tier-defaults legend {
   padding: 0 4px;
-  font-size: 12px;
+  font-size: .875rem;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -1636,7 +1634,7 @@ footer {
 }
 .tier-report-cards b,
 .tier-report-cards p {
-  font-size: 12px;
+  font-size: .875rem;
 }
 .tier-report-cards small {
   color: var(--text-muted);
@@ -1662,7 +1660,7 @@ footer {
   }
   .tier-section .field,
   .tier-section summary {
-    font-size: 12px;
+    font-size: .875rem;
   }
   .tier-section .field input,
   .tier-section .field select {
@@ -1697,14 +1695,14 @@ footer {
   display: block;
   margin-top: 6px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: .8125rem;
   overflow-wrap: anywhere;
 }
 .import-counts {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: .875rem;
   margin: 14px 0;
   color: #59705f;
 }
@@ -1733,11 +1731,11 @@ footer {
   margin-bottom: 8px;
 }
 .cost-quality .section-title > span {
-  font-size: 11px;
+  font-size: .8125rem;
   color: var(--text-muted);
 }
 .cost-quality p {
-  font-size: 12px;
+  font-size: .9375rem;
   line-height: 1.6;
 }
 .cost-quality .checkbox {
@@ -1794,7 +1792,7 @@ footer {
     min-height: 44px;
   }
   .unified-import .data-strip > .actions button {
-    font-size: 12px;
+    font-size: .875rem;
   }
   .unified-import .advanced-import-tools > .actions > * {
     min-width: 0;
@@ -1806,7 +1804,7 @@ footer {
     gap: 7px;
   }
   .import-counts span {
-    font-size: 11px;
+    font-size: .8125rem;
   }
   .cost-quality {
     padding: 12px;
@@ -1880,3 +1878,116 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 50%;
   background: #087b66;
 }
+
+/* Beta readability: text size never substitutes for intrinsic layout space. */
+button,
+.button {
+  font-size: .875rem;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+input,
+select {
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 42px;
+}
+input[type="checkbox"],
+input[type="range"],
+input[type="file"] {
+  min-height: 0;
+}
+.field select,
+.field input {
+  font-size: 1rem;
+}
+.panel-heading,
+.heading,
+.section-title,
+.data-strip,
+.actions,
+.priority-row,
+.snapshot,
+.pagination,
+.topbar {
+  flex-wrap: wrap;
+}
+.topbar {
+  height: auto;
+  min-height: 68px;
+  gap: 12px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.panel-heading > *,
+.actions > *,
+.tier-bulk > * {
+  min-width: 0;
+}
+.legend,
+.checkbox {
+  white-space: normal;
+}
+.legend { display: inline-flex; align-items: center; }
+.legend i { flex-shrink: 0; }
+.notice,
+.warning-summary,
+.diagnostic-summary { line-height: 1.6; }
+table { font-size: .8125rem; }
+th { font-size: .75rem; }
+td b { font-size: .8125rem; }
+td small { font-size: .75rem; }
+.merchant-shell table,
+.suggestion td { font-size: .875rem; }
+.merchant-shell th { font-size: .8125rem; }
+.merchant-shell td small { font-size: .8125rem; }
+td input.discount-input,
+.merchant-shell .discount-input { width: 100px; font-size: 1rem; }
+/* Readable SVG labels need their coordinate space; scroll charts within panels. */
+.chart-panel,
+.simple-chart { overflow-x: auto; }
+.frontier { min-width: 700px; max-width: 900px; }
+.simple-chart svg,
+.merchant-shell .simple-chart svg { min-width: 640px; max-width: 800px; }
+.frontier text,
+.simple-chart text { font-size: 18px; }
+.category-chart { grid-template-columns: 110px minmax(0, 1fr) 240px; }
+.category-chart b,
+.category-chart span,
+.category-legend { font-size: .8125rem; }
+.app .workspace-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 360px); }
+@media (max-width: 1350px) {
+  .app .workspace-grid { grid-template-columns: minmax(0, 1fr); }
+  .app .controls { grid-row: 1; }
+  .app .category-chart { grid-template-columns: 100px minmax(0, 1fr); }
+  .app .category-chart span { grid-column: 2; text-align: left; }
+}
+@media (max-width: 600px) {
+  .two-fields { grid-template-columns: minmax(0, 1fr); }
+}
+
+.improve { font-size: .9375rem; }
+h1, h2, h3 { line-height: 1.25; }
+.card strong { line-height: 1.2; }
+.sidebar { overflow-y: auto; }
+.sidebar-bottom, .brand { flex-shrink: 0; }
+.subtle,
+.card small,
+.card-delta,
+.card-delta span,
+.range-labels,
+.priority-row small,
+.priority,
+.pagination,
+.pagination button,
+td small,
+.notice span { font-size: .8125rem; }
+/* Duplicate threshold/break-even values already have readable HTML chart keys.
+   Avoid crowded SVG annotations when profit goal and buffer nearly coincide. */
+.simple-chart svg > g:not(:has(> title)) > text { display: none; }
+.simple-chart text[y="249"] { transform: translateY(16px); }
+/* Put the SVG's metric heading in its own reserved space above the plot. */
+.simple-chart svg { margin-top: 2rem; overflow: visible; }
+.simple-chart svg > text[y="17"] { transform: translateY(-24px); }

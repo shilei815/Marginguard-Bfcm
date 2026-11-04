@@ -1,6 +1,7 @@
 // Optional real Chromium QA, using Node's built-in CDP WebSocket (no browser npm dependency).
 import assert from "node:assert/strict";
 import { auditRenderedContrast } from "./contrast-audit.mjs";
+import { measureTypography } from "./typography-audit.mjs";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { readFile, writeFile, mkdir, mkdtemp } from "node:fs/promises";
@@ -41,6 +42,8 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const origin = `http://127.0.0.1:${server.address().port}`;
 let chrome, ws;
+const browserZoom = Number(process.env.BROWSER_ZOOM ?? 1);
+assert([1, 1.25, 1.5, 2].includes(browserZoom), "Supported QA browser zoom: 1, 1.25, 1.5, 2");
 const report = {
   browser: "",
   viewports: [],
@@ -52,6 +55,11 @@ try {
   let endpoint = process.env.BROWSER_CDP_URL;
   if (!endpoint) {
     const profile = await mkdtemp(resolve(artifacts, "profile-"));
+    // Chromium's actual desktop default zoom in an isolated test profile.
+    await mkdir(resolve(profile, "Default"));
+    await writeFile(resolve(profile, "Default/Preferences"), JSON.stringify({
+      partition: { default_zoom_level: { x: Math.log(browserZoom) / Math.log(1.2) } },
+    }));
     chrome = spawn(
       process.env.CHROMIUM_BIN ?? "chromium",
       [
@@ -180,7 +188,10 @@ try {
   await page("Runtime.enable");
   await page("Network.enable");
   async function load(width) {
-    await page("Emulation.setDeviceMetricsOverride", {
+    if (browserZoom !== 1) {
+      const { windowId } = await call("Browser.getWindowForTarget", { targetId });
+      await call("Browser.setWindowBounds", { windowId, bounds: { width, height: 1000, windowState: "normal" } });
+    } else await page("Emulation.setDeviceMetricsOverride", {
       width,
       height: 1000,
       deviceScaleFactor: 1,
@@ -224,7 +235,18 @@ try {
       [],
       `${mode}/${state}/${width}: controls extend beyond viewport`,
     );
-    report.viewports.push({ width, mode, state, ...layout });
+    const typography = await evaluate(`(${measureTypography.toString()})()`);
+    const minimumSizes = { body: 16, paragraph: 15, caption: 13, button: 14, label: 14, value: 16, navigation: 14, disclosure: 14, table: 13, tableHeader: 12, sectionHeading: 18, legend: 13, warning: 14 };
+    for (const [name, minimum] of Object.entries(minimumSizes)) {
+      if (typography[name]) assert(typography[name].size >= minimum, `${mode}/${state}: ${name} is ${typography[name].size}px, expected >=${minimum}px`);
+    }
+    if (typography.chartLabel) assert(typography.chartLabel.renderedSize >= 13, `Chart text must remain readable after SVG scaling: ${JSON.stringify(typography.chartLabel)}`);
+    assert.deepEqual(layout.overflowingText, [], `${mode}/${state}: text extends outside its container`);
+    const overlaps = await evaluate(`(()=>{const out=[];for(const p of document.querySelectorAll('.actions,.two-fields,.tier-defaults,.bulk-controls,.merchant-cards,.panel-heading,.section-title,.topbar,.step-nav,.pagination')){const children=[...p.children].filter(e=>e.checkVisibility({checkVisibilityCSS:true})&&e.getClientRects().length);for(let i=0;i<children.length;i++)for(let j=i+1;j<children.length;j++){const a=children[i].getBoundingClientRect(),b=children[j].getBoundingClientRect();if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)out.push(p.className)}}return out})()`);
+    assert.deepEqual(overlaps, [], `${mode}/${state}: sibling content overlaps`);
+    const chartOverlaps = await evaluate(`(()=>{const out=[];for(const svg of document.querySelectorAll('svg')){const texts=[...svg.querySelectorAll('text')].filter(e=>e.checkVisibility({checkVisibilityCSS:true})&&e.getClientRects().length);for(let i=0;i<texts.length;i++)for(let j=i+1;j<texts.length;j++){const a=texts[i].getBoundingClientRect(),b=texts[j].getBoundingClientRect();if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)out.push([texts[i].textContent,texts[j].textContent])}}return out})()`);
+    assert.deepEqual(chartOverlaps, [], `${mode}/${state}: SVG labels overlap`);
+    report.viewports.push({ width, mode, state, typography, ...layout });
   }
   const screenshot = async (name, scrollToTop = true) => {
     if (scrollToTop) await evaluate("window.scrollTo(0,0)");
@@ -235,6 +257,12 @@ try {
       Buffer.from(shot.data, "base64"),
     );
   };
+  const key = async (key, code, windowsVirtualKeyCode, modifiers = 0) => {
+    await page("Input.dispatchKeyEvent", { type: "keyDown", key, code, windowsVirtualKeyCode, modifiers, ...(key === "Enter" ? { text: "\r" } : {}) });
+    await page("Input.dispatchKeyEvent", { type: "keyUp", key, code, windowsVirtualKeyCode, modifiers });
+    await frame();
+  };
+  if (browserZoom === 1) {
   const tierListPath = resolve(artifacts, "synthetic-tiers.csv");
   await writeFile(
     tierListPath,
@@ -267,7 +295,7 @@ try {
     minimalPath,
     "SKU,Regular_Price_USD,Unit_COGS_USD,Inventory_Units,Expected_Units\nMIN,50,20,100,10\n",
   );
-  for (const width of [320, 375, 390, 430, 768, 1440]) {
+  for (const width of [320, 375, 390, 430, 768, 1024, 1440, 1920]) {
     await load(width);
     assert.deepEqual(
       await evaluate(
@@ -330,6 +358,10 @@ try {
       ),
     );
     await fit(width, "Simple", "suggestion");
+    if (width === 375 || width === 1440) {
+      await evaluate("document.querySelector('.simple-chart').scrollIntoView()");
+      await screenshot(`comparison-${width}`, false);
+    }
     if (width === 375 || width === 1440) {
       await evaluate(
         "document.querySelector('.tier-report').scrollIntoView({block:'start'});window.scrollBy(0,-80)",
@@ -617,11 +649,7 @@ try {
     "Real browser tier assignment export, native import under changed defaults and recommendation export preserve resolved offers.",
   );
   // Beta release audit: real key events and browser accessibility tree.
-  const key = async (key, code, windowsVirtualKeyCode, modifiers = 0) => {
-    await page("Input.dispatchKeyEvent", { type: "keyDown", key, code, windowsVirtualKeyCode, modifiers, ...(key === "Enter" ? { text: "\r" } : {}) });
-    await page("Input.dispatchKeyEvent", { type: "keyUp", key, code, windowsVirtualKeyCode, modifiers });
-    await frame();
-  };
+
   await load(375);
   await evaluate("document.querySelector('.step-nav a').focus()");
   await key("Tab", "Tab", 9);
@@ -670,15 +698,51 @@ try {
   await screenshot("beta-chart-375", false);
   report.captionStyle = await evaluate("(()=>{const e=document.querySelector('.chart-panel .caption'),s=getComputedStyle(e);return {color:s.color,fontSize:s.fontSize,panelBackground:getComputedStyle(e.closest('.panel')).backgroundColor}})()");
   report.checks.push("Beta keyboard: Tab/Shift+Tab workflow links, Space warning disclosure, Enter suggestion/apply/methodology and ArrowRight chart scrubber passed; sampled AX controls have names. Checkout-rounding disclosures are present in both modes.");
+  } else {
+    // Browser zoom changes layout viewport and DPR; pinch/page scale is not used.
+    report.zoom = [];
+    for (const width of [1024, 1440, 1920]) {
+      await load(width);
+      const metrics = await evaluate("({width:innerWidth,dpr:devicePixelRatio,scale:visualViewport.scale})");
+      assert(Math.abs(metrics.width - width / browserZoom) < 2, `Expected actual browser zoom reflow: ${JSON.stringify({width,browserZoom,metrics})}`);
+      assert(Math.abs(metrics.dpr - browserZoom) < 0.01, "Browser zoom must scale devicePixelRatio");
+      await evaluate("document.querySelectorAll('details').forEach(e=>e.open=true)");
+      await evaluate("document.querySelector('.step-nav a').focus()");
+      await key("Tab", "Tab", 9);
+      const focus = await evaluate("({width:parseFloat(getComputedStyle(document.activeElement).outlineWidth),visible:document.activeElement.matches(':focus-visible'),href:document.activeElement.getAttribute('href')})");
+      assert(focus.width >= 2 && focus.visible && focus.href === '#step-2', `Keyboard focus at zoom: ${JSON.stringify(focus)}`);
+      await fit(width, "Simple", `browser-zoom-${browserZoom}`);
+      await button("Improve My Plan");
+      assert(await evaluate("!!document.querySelector('.suggestion')"));
+      await fit(width, "Simple", `zoom-suggestion-${browserZoom}`);
+      if (width === 1440) await screenshot(`simple-1440-zoom-${browserZoom*100}`);
+      await button("Advanced Mode");
+      await button("Optimize");
+      await evaluate("document.querySelectorAll('details').forEach(e=>e.open=true)");
+      await fit(width, "Advanced", `browser-zoom-${browserZoom}`);
+      assert(await evaluate("!!document.querySelector('input[aria-label=\"Explore product discount steps\"]')"));
+      if (width === 1440) await screenshot(`advanced-1440-zoom-${browserZoom*100}`);
+      if (await evaluate("document.querySelector('.mobile-nav-toggle').checkVisibility({checkVisibilityCSS:true})")) {
+        await evaluate("document.querySelector('.mobile-nav-toggle').focus()");
+        await key("Enter", "Enter", 13);
+        assert(await evaluate("!document.querySelector('.mobile-navigation').hidden"));
+        await fit(width, "Advanced", `zoom-navigation-${browserZoom}`);
+        await evaluate("document.querySelector('.mobile-navigation a[href=\"#sku-table\"]').focus()");
+        await key("Enter", "Enter", 13);
+        assert(await evaluate("document.querySelector('.mobile-navigation').hidden"));
+      }
+      report.zoom.push({ physicalWidth: width, factor: browserZoom, ...metrics });
+    }
+  }
   assert.deepEqual(report.runtimeErrors, []);
   assert.deepEqual(report.externalRequests, []);
   await call("Target.closeTarget", { targetId });
   await writeFile(
-    resolve(artifacts, "report.json"),
+    resolve(artifacts, browserZoom === 1 ? "report.json" : `zoom-${browserZoom*100}.json`),
     JSON.stringify(report, null, 2) + "\n",
   );
   console.log(
-    `${report.browser}: ${report.viewports.length} layout/state checks passed across 320,375,390,430,768,1440px. No runtime errors or external requests. Report: work/browser-qa/report.json`,
+    `${report.browser}: ${report.viewports.length} layout/state checks passed; physical widths ${[...new Set(report.viewports.map(v=>v.width))].join(",")}px; browser zoom ${browserZoom * 100}%. No runtime errors or external requests. Report: work/browser-qa/${browserZoom === 1 ? "report.json" : `zoom-${browserZoom*100}.json`}`,
   );
 } finally {
   ws?.close();
