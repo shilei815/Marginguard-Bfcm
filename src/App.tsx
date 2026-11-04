@@ -128,7 +128,7 @@ function Frontier({
               y2={y(v)}
               stroke="#e3e9e7"
             />
-            <text x={pad} y={y(v) - 7} fontSize="11" fill="#6a7a78">
+            <text x={pad} y={y(v) - 7} fontSize="11" fill="#4f665b">
               {money(v)}
             </text>
           </g>
@@ -150,7 +150,7 @@ function Frontier({
         >
           Minimum Profit Goal{buffer > 0 ? " + safety buffer" : ""} · {money(floor)}
         </text>
-        <line x1={pad} x2={width - pad} y1={y(0)} y2={y(0)} stroke="#b2bebb" />
+        <line x1={pad} x2={width - pad} y1={y(0)} y2={y(0)} stroke="#62796b" />
         <path
           d={points
             .map((p, i) => `${i ? "L" : "M"}${x(i)},${y(p.contribution)}`)
@@ -165,7 +165,7 @@ function Frontier({
             cx={x(i)}
             cy={y(p.contribution)}
             r={i === at ? 6 : 3}
-            fill={p.belowFloor ? "#c56c3d" : "#087b66"}
+            fill={p.belowFloor ? "#a45336" : "#087b66"}
           >
             <title>
               {i}: {p.id === "Required discounts" ? "Minimum Required Offers" : p.id}
@@ -173,7 +173,7 @@ function Frontier({
             </title>
           </circle>
         ))}
-        <text x={pad} y={height - 9} fontSize="11" fill="#6a7a78">
+        <text x={pad} y={height - 9} fontSize="11" fill="#4f665b">
           Minimum Required Offers
         </text>
         <text
@@ -181,7 +181,7 @@ function Frontier({
           y={height - 9}
           textAnchor="end"
           fontSize="11"
-          fill="#6a7a78"
+          fill="#4f665b"
         >
           Product Discount Steps →
         </text>

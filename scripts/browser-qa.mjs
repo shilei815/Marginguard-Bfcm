@@ -1,5 +1,6 @@
 // Optional real Chromium QA, using Node's built-in CDP WebSocket (no browser npm dependency).
 import assert from "node:assert/strict";
+import { auditRenderedContrast } from "./contrast-audit.mjs";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { readFile, writeFile, mkdir, mkdtemp } from "node:fs/promises";
@@ -204,6 +205,9 @@ try {
     await frame();
   }
   async function fit(width, mode, state) {
+    const contrast = await evaluate(`(${auditRenderedContrast.toString()})()`);
+    (report.contrast ??= []).push({ width, mode, state, ...contrast });
+    if (process.env.CONTRAST_ALLOW_FAILURES !== "1") assert.deepEqual(contrast.failures, [], `${mode}/${state}/${width}: contrast failures`);
     const layout = await evaluate(
       `(()=>{const d=document.documentElement;return {viewport:innerWidth,client:d.clientWidth,scroll:d.scrollWidth,body:document.body.scrollWidth,overflowingText:[...document.querySelectorAll('body *')].filter(e=>e.namespaceURI==='http://www.w3.org/1999/xhtml'&&!e.children.length&&!e.closest('.table-scroll')&&e.clientWidth>0&&e.scrollWidth>e.clientWidth+1&&getComputedStyle(e).overflowX==='visible').map(e=>({tag:e.tagName,class:e.className,text:e.textContent.slice(0,60)})).slice(0,8),tableScrollers:[...document.querySelectorAll('.table-scroll')].filter(e=>e.clientWidth>0&&e.scrollWidth>e.clientWidth).length,offscreenControls:[...document.querySelectorAll('button,input,select')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&!e.closest('.table-scroll')&&(r.left< -1||r.right>d.clientWidth+1)}).map(e=>e.getAttribute('aria-label')||e.textContent.trim())};})()`,
     );
@@ -647,6 +651,13 @@ try {
   await key("Enter", "Enter", 13);
   assert(await evaluate("document.querySelector('.chart-panel details').open"));
   await fit(375, "Advanced", "beta-keyboard-chart-and-methodology");
+  const disabledAppearance = await evaluate("(()=>{const e=document.querySelector('button:disabled');return {disabled:e.disabled,opacity:getComputedStyle(e).opacity}})()");
+  assert.deepEqual(disabledAppearance, { disabled: true, opacity: "1" });
+  await evaluate("document.querySelector('.topbar button').scrollIntoView()");
+  const hoverTarget = await evaluate("(()=>{const r=document.querySelector('.topbar button').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()");
+  await page("Input.dispatchMouseEvent", { type: "mouseMoved", ...hoverTarget });
+  await frame();
+  await fit(375, "Advanced", "contrast-hover-and-disabled");
   const ax = await page("Accessibility.getFullAXTree");
   const controls = ax.nodes.filter(n => !n.ignored && ['button', 'link', 'textbox', 'spinbutton', 'slider', 'combobox', 'checkbox'].includes(n.role?.value));
   report.accessibility = {

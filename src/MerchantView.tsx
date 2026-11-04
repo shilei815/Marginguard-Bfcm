@@ -374,7 +374,7 @@ export function ProfitChart({
               x2="725"
               y1={y(v)}
               y2={y(v)}
-              stroke={i ? "#ad7943" : "#abbfb3"}
+              stroke={i ? "#ad7943" : "#62796b"}
               strokeDasharray="5 5"
             />
             <text x="730" y={y(v) + 4} fontSize="10">
@@ -403,7 +403,7 @@ export function ProfitChart({
               cx={x(p.discount)}
               cy={y(p.profit)}
               r="6"
-              fill={i ? "#087b66" : "#d08245"}
+              fill={i ? "#087b66" : "#a45336"}
             />
             <text
               x={x(p.discount)}
