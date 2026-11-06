@@ -26,7 +26,10 @@ Start with the [merchant guide](BETA_USER_GUIDE.md) and review the
 verify assumptions and checkout behavior independently before making commercial
 decisions. No guarantee of future sales or profit is made.
 
-Publication note for the owner: link this copy to the currently verified
-production entrypoint. Do not announce a proposed replacement URL before it has
-been created, verified and approved. Repository documentation is not evidence of
-hostname availability or a completed migration.
+Verified evergreen production URL: [https://marginguard.pages.dev/](https://marginguard.pages.dev/).
+
+Publication note for the owner: the new project and initial functional smoke test
+are owner-verified. PR #10 prepares the updated metadata but remains unmerged;
+confirm the approved production artifact after integration before broader launch.
+The legacy site stays available for existing links. Its eventual redirect is a
+separate owner-approved operation.

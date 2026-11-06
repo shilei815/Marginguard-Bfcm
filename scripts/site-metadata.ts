@@ -32,7 +32,8 @@ export function metadataTags(site: SiteMetadata, preview: boolean): HtmlTagDescr
     meta("og:site_name", site.name), meta("og:type", "website"),
     meta("og:title", site.title), meta("og:description", site.description),
     meta("og:url", site.productionOrigin + "/"),
-    meta("twitter:card", "summary"), meta("twitter:title", site.title),
+    meta("twitter:card", "summary"), meta("twitter:url", site.productionOrigin + "/"),
+    meta("twitter:title", site.title),
     meta("twitter:description", site.description),
     meta("robots", preview ? "noindex, nofollow" : "index, follow"),
   ];

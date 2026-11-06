@@ -8,7 +8,7 @@ MarginGuard is a browser-only React/TypeScript/Vite planner for everyday, season
 
 Current merchant documentation: [beta user guide](docs/BETA_USER_GUIDE.md) and [public launch copy](docs/PUBLIC_LAUNCH_COPY.md). Original reference files (`README`, `README.txt`, workbook and synthetic data) and phase reports are historical engineering evidence, not current product positioning. They remain intact for reproducibility.
 
-Canonical, social-sharing and sitemap URLs are generated from [config/site.json](config/site.json). The active origin stays on the existing production hostname until a replacement is created, verified and approved. See the [migration and rollback plan](docs/DOMAIN_MIGRATION.md); this work does not create projects, rename the repository, merge or deploy.
+Canonical, social-sharing and sitemap URLs are generated from [config/site.json](config/site.json). PR #10 now targets the owner-verified evergreen origin, [https://marginguard.pages.dev/](https://marginguard.pages.dev/). This configuration change is not deployed until owner-approved integration. See the [migration and rollback plan](docs/DOMAIN_MIGRATION.md); this work does not create projects, rename the repository, merge or deploy.
 
 ## One product file to get started
 

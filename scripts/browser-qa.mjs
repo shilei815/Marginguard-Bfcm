@@ -316,8 +316,8 @@ try {
       ),
     );
     const activeSite = JSON.parse(await readFile(resolve(root, "config/site.json"), "utf8"));
-    const head = await evaluate("({canonical:document.querySelector('link[rel=canonical]')?.href,og:document.querySelector('meta[property=\"og:url\"]')?.content,name:document.querySelector('meta[property=\"og:site_name\"]')?.content,description:document.querySelector('meta[name=description]')?.content})");
-    assert.deepEqual(head, { canonical: activeSite.productionOrigin + "/", og: activeSite.productionOrigin + "/", name: activeSite.name, description: activeSite.description });
+    const head = await evaluate("({canonical:document.querySelector('link[rel=canonical]')?.href,og:document.querySelector('meta[property=\"og:url\"]')?.content,twitter:document.querySelector('meta[name=\"twitter:url\"]')?.content,name:document.querySelector('meta[property=\"og:site_name\"]')?.content,description:document.querySelector('meta[name=description]')?.content})");
+    assert.deepEqual(head, { canonical: activeSite.productionOrigin + "/", og: activeSite.productionOrigin + "/", twitter: activeSite.productionOrigin + "/", name: activeSite.name, description: activeSite.description });
     await fit(width, "Simple", "default");
     if (width === 375 || width === 1440) await screenshot(`simple-${width}`);
     await evaluate(
