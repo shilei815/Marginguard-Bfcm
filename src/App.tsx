@@ -569,6 +569,7 @@ export default function App() {
       <main>
         <header className="topbar">
           <div className="actions">
+            <a href="#help-feedback" onClick={() => setMobileNavOpen(false)}>Feedback</a>
             <button
               onClick={() => {
                 setAdvanced(false);

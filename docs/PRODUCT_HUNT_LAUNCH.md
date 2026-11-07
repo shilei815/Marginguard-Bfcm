@@ -1,6 +1,6 @@
 # MarginGuard public beta launch kit
 
-Status: **draft, blocked on an owner-approved public feedback address**. No launch
+Status: **draft; approved feedback contact configured, release and publication pending**. No launch
 or deployment is authorized by this document.
 
 ## Listing copy
@@ -49,26 +49,29 @@ fabricated, composited or edited. Screenshot provenance and limitations are in
 `launch-assets/README.md`. Review image crops/readability in Product Hunt before
 publication; do not suggest that demo results predict merchant outcomes.
 
-## Feedback configuration — launch blocker
+## Approved feedback contact
 
-No approved public contact email was found in the repository. The shared Help
-section displays **Send Feedback — coming soon** with no clickable email address.
-`config/feedback.json` deliberately contains `"publicEmail": null`.
+The owner confirms **miniventurelab@gmail.com** is owned, approved for public
+display and able to receive email. It is configured in `config/feedback.json`.
+Both top bars have a **Feedback** anchor to the stable `#help-feedback` section;
+this keeps the current campaign on the page. The final **Send Feedback** action
+in that section resolves to:
 
-The owner must provide an approved public mailbox, replace null with that address
-in a reviewed change, then verify that both modes render a working mailto link
-with subject `MarginGuard beta feedback`. `feedbackHref` rejects malformed and
-reserved example/test addresses instead of emitting a fake contact link. This
-is validation, not proof of mailbox ownership or deliverability. Do not use a
-made-up address, private Git author address, or placeholder mailbox. Do not
-publish while this blocker is unresolved.
+`mailto:miniventurelab@gmail.com?subject=MarginGuard%20beta%20feedback`
 
-The browser regression check currently expects no mailto while configuration is
-null; update that expectation when activating the reviewed public address.
+The subject is **MarginGuard beta feedback**. The existing `feedbackHref` helper
+remains the single source of mailto construction, including fail-closed checks
+for invalid/unconfigured addresses. The coming-soon placeholder is absent with
+this approved configuration. Automated tests inspect the link without activating
+an email client or sending mail.
+
+**Owner action:** manually test the link in a configured email client and confirm
+delivery. Production deployment and Product Hunt publication remain pending and
+require separate owner approval.
 
 ## Launch-day checklist
 
-- [ ] Owner approves and verifies the feedback mailbox; resolve the blocker above.
+- [ ] Owner manually tests the configured Send Feedback action and confirms email delivery.
 - [ ] Review this Draft PR and screenshots; approve copy and model disclosures.
 - [ ] Confirm production release baseline and explicitly approve merge/release separately. PR #11 legacy redirect work is a separate operation and is not required by this launch change.
 - [ ] Run unit tests, production build and browser QA on the final reviewed commit.
@@ -90,9 +93,31 @@ Product Hunt publication remain manual release gates.
 
 - `npm test`: 263 tests across 15 files passed, including the new Help/feedback regression checks and original financial/fixture tests.
 - `npm run build`: TypeScript and Vite production build passed.
-- Chromium QA: 139 responsive layout/state checks at 320, 375, 390, 430, 768, 1024, 1440 and 1920px passed. Coverage includes both modes, native CSV import, failed-import rollback, recommendations, CSV exports/round-trip, demo reset at every width, Help disclosure keyboard activation and absent mailto while unconfigured.
+- Chromium QA: 139 responsive layout/state checks at 320, 375, 390, 430, 768, 1024, 1440 and 1920px passed. Coverage includes both modes, native CSV import, failed-import rollback, recommendations, CSV exports/round-trip, demo reset at every width, Help disclosure keyboard activation and active mailto correctness (updated in Stage 4A.1).
 - An additional 33 browser checks at 125%, 150% and 200% zoom passed (172 browser layout/state checks total).
 - No runtime errors or external page requests were recorded by browser QA. Financial/model/CSV source, fixtures, public metadata, dependency files and Cloudflare configuration match main.
 - Screenshots were inspected at desktop and mobile sizes; the three gallery captures use the fictional demo only.
 
 These are local checks, not production smoke testing or comprehensive accessibility certification.
+
+## Stage 4A.1 activation verification
+
+The approved email is active in both modes. Mouse click and keyboard Enter on
+the top-bar Feedback anchor reach and focus `#help-feedback`, with the financial
+cards unchanged. Tab/Shift+Tab verifies the link's visible focus outline. The
+139-state responsive suite covers eight widths including 320px, native FAQ
+keyboard operation, demo reset, mode switching, recommendations and CSV import/
+export. It recorded no runtime errors or external application requests.
+
+Commands: `npm test`, `npm run build`, and
+`CHROMIUM_NO_SANDBOX=1 npm run test:browser`. The Chromium no-sandbox flag is for
+this disposable test container only. Additional existing zoom checks use
+`BROWSER_ZOOM=1.25`, `1.5` and `2`. No separate lint script is configured;
+TypeScript checking runs in the production build, and `node --check
+scripts/browser-qa.mjs` plus `git diff --check` passed.
+
+Original gallery PNGs and SHA-256 checksums are unchanged. Images 01 and 02 show
+the older Simple top bar without Feedback; obtain owner approval to recapture
+them before publication. Image 03's visible scrolled chart content remains
+accurate. Email-client behavior/delivery and live production remain untested;
+no real email was sent.

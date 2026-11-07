@@ -32,5 +32,11 @@ not deploy. It asserts no external page requests and no runtime errors.
 The screenshot content and figures are demonstration evidence only. No image
 was generated, composited, annotated or retouched. Product Hunt presentation,
 physical-device rendering and production-host behavior require owner review.
-See `../PRODUCT_HUNT_LAUNCH.md` for copy and release gates. A configured and
-verified public feedback address remains a launch blocker.
+See `../PRODUCT_HUNT_LAUNCH.md` for copy and release gates. The owner-approved public address is now configured as miniventurelab@gmail.com;
+manual email-client/delivery verification remains pending.
+
+Stage 4A.1 preserves these original images and checksums. Image 01 shows the
+older Simple top bar without the new Feedback entry; an owner-approved recapture
+is recommended before publication. Image 02 also contains that older Simple top
+bar. Image 03 is scrolled to the Advanced chart and its visible content remains
+accurate. No gallery image was silently replaced.

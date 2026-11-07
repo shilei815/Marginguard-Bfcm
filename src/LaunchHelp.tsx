@@ -10,7 +10,7 @@ export function feedbackHref(email: unknown): string | null {
 export default function LaunchHelp() {
   const href = feedbackHref(feedback.publicEmail);
   return (
-    <section className="panel launch-help" aria-labelledby="launch-help-title">
+    <section id="help-feedback" className="panel launch-help" tabIndex={-1} aria-labelledby="launch-help-title">
       <h2 id="launch-help-title">Help & feedback</h2>
       <details>
         <summary>How do I get started?</summary>

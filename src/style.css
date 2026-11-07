@@ -1997,3 +1997,10 @@ td small,
 .launch-help details { margin: 12px 0; }
 .launch-help p { line-height: 1.6; overflow-wrap: anywhere; }
 .launch-help a { color: #08745e; text-decoration: underline; }
+
+.topbar a[href="#help-feedback"] { font-size: .875rem; text-decoration: underline; }
+#help-feedback { scroll-margin-top: 90px; }
+@media (max-width: 430px) {
+  .merchant-shell .topbar { flex-wrap: wrap; gap: 8px; }
+  .merchant-shell .topbar .actions { flex-wrap: wrap; }
+}

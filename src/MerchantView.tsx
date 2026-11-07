@@ -586,6 +586,7 @@ export default function MerchantView(p: MerchantProps) {
         </a>
         <div className="actions">
           <span className="badge">BROWSER ONLY</span>
+          <a href="#help-feedback">Feedback</a>
           <button onClick={p.onToggle}>Advanced Mode</button>
         </div>
       </header>

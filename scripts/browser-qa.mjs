@@ -262,6 +262,22 @@ try {
     await page("Input.dispatchKeyEvent", { type: "keyUp", key, code, windowsVirtualKeyCode, modifiers });
     await frame();
   };
+  const verifyFeedback = async () => {
+    assert.equal(await evaluate("document.querySelector('.launch-help a').getAttribute('href')"), "mailto:miniventurelab@gmail.com?subject=MarginGuard%20beta%20feedback");
+    assert(!(await evaluate("document.querySelector('.launch-help').textContent.includes('coming soon')")));
+    const before = await evaluate("document.querySelector('.cards')?.textContent");
+    await evaluate("document.querySelector('.topbar a[href=\"#help-feedback\"]').click()");
+    await frame();
+    assert(await evaluate("location.hash==='#help-feedback' && document.querySelector('#help-feedback').getBoundingClientRect().top < innerHeight"));
+    await evaluate("document.querySelector('.topbar a[href=\"#help-feedback\"]').focus()");
+    await key("Tab", "Tab", 9);
+    await key("Tab", "Tab", 9, 8);
+    assert(await evaluate("document.activeElement.matches('.topbar a[href=\"#help-feedback\"]') && getComputedStyle(document.activeElement).outlineStyle !== 'none'"));
+    await key("Enter", "Enter", 13);
+    assert(await evaluate("document.activeElement.id==='help-feedback'"));
+    assert.equal(await evaluate("document.querySelector('.cards')?.textContent"), before);
+    // Inspect the mailto only; never activate an email client or send a message.
+  };
   if (browserZoom === 1) {
   const tierListPath = resolve(artifacts, "synthetic-tiers.csv");
   await writeFile(
@@ -320,7 +336,7 @@ try {
     assert.deepEqual(head, { canonical: activeSite.productionOrigin + "/", og: activeSite.productionOrigin + "/", twitter: activeSite.productionOrigin + "/", name: activeSite.name, description: activeSite.description });
     assert(await evaluate("document.body.textContent.includes('A fictional demo is already loaded')"));
     assert.equal(await evaluate("document.querySelectorAll('.launch-help details > summary').length"), 5);
-    assert.equal(await evaluate("document.querySelectorAll('a[href^=\"mailto:\"]').length"), 0);
+    await verifyFeedback();
     await evaluate("document.querySelector('.launch-help summary').focus()");
     await key("Enter", "Enter", 13);
     assert(await evaluate("document.querySelector('.launch-help details').open"));
@@ -423,6 +439,7 @@ try {
     await frame();
     assert.equal(await evaluate("document.querySelectorAll('.launch-help details > summary').length"), 5);
     assert(await evaluate("document.querySelector('.launch-help').textContent.includes('Send Feedback')"));
+    await verifyFeedback();
     await fit(width, "Advanced", "all-details-expanded");
     await button("Optimize");
     await fit(width, "Advanced", "optimized");
