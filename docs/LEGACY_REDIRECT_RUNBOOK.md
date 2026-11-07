@@ -229,3 +229,51 @@ is `work/legacy-redirect-qa/report.json`. No live checks or deployment have been
 substituted with these model results. The snapshot records the current approved
 release; future app/asset changes require separate owner review of any affected
 migration assumptions, not automatic legacy rebuilds.
+
+## Stage 3D.3A — separate 302 Preview package
+
+PR #11 now also contains `ops/legacy-redirect/preview-302/site`. This is an
+isolated temporary-test upload directory, not a replacement for the permanent
+301 package. All 10 files originally under `ops/legacy-redirect` at `61dc8cf`
+remain byte-for-byte unchanged; preview checks pin their SHA-256 values. The
+existing 301 command above remains proposed-only and is not used for this stage.
+
+The preview contains exactly a 302 `_redirects` and minimal noindex 404 fallback.
+Its planned branch is `redirect-validation-302`, explicitly different from the
+legacy Production branch `main`. The new preflight rejects the new project
+`marginguard`, Production branch `main`, an unexpected declared Production branch,
+or either the shared app/production-301 output directory.
+
+Read-only preflight, from repository root:
+
+```sh
+node ops/legacy-redirect/preview-302/check.mjs --project-name=marginguard-bfcm --branch=redirect-validation-302 --production-branch=main
+```
+
+Exact proposed Preview command — **NOT EXECUTED; separate owner approval required**:
+
+```sh
+npx wrangler@4 pages deploy ops/legacy-redirect/preview-302/site --project-name=marginguard-bfcm --branch=redirect-validation-302
+```
+
+Confirm the actual account/project and legacy Production branch before approving
+this command. The local guard checks a plan; it cannot constrain a different
+manually typed Wrangler command or certify live Cloudflare settings. Verify the
+result is a Preview deployment at its actual returned URL, that the legacy
+Production ID/root are unchanged, and that the new project is unaffected. Do not
+promote Preview to Production or change settings as part of this preparation.
+
+The [302 preview README](../ops/legacy-redirect/preview-302/README.md) contains
+exact rules, commands, negative checks, model limitations and live acceptance
+cases. Query handling and live root/path/fragment/status/header/cache behavior
+remain unverified until an owner-approved upload and checks. Local Chromium
+observes 302 in a two-origin mock and checks fragment inheritance; the model's
+query forwarding and no-store header are not claims about Cloudflare. Passing
+Preview tests does not authorize the permanent 301 migration.
+
+Stage 3D.3A local verification: **300 unit tests in 16 files**, production build,
+both preflights, both unsafe-plan rejection checks, **six 302 plus six original
+301 model browser cases**, and **164 application browser checks** (131 responsive
+states plus 33 zoom checks at 125%, 150% and 200%) passed. All 10 original 301
+package files and 26 approved app/fixture checksums match. No live Cloudflare
+validation or deployment was performed; the owner gates above remain pending.
