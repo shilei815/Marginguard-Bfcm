@@ -116,8 +116,8 @@ this disposable test container only. Additional existing zoom checks use
 TypeScript checking runs in the production build, and `node --check
 scripts/browser-qa.mjs` plus `git diff --check` passed.
 
-Original gallery PNGs and SHA-256 checksums are unchanged. Images 01 and 02 show
-the older Simple top bar without Feedback; obtain owner approval to recapture
-them before publication. Image 03's visible scrolled chart content remains
-accurate. Email-client behavior/delivery and live production remain untested;
+Stage 4A.2 refreshes gallery images 01 and 02 with the approved Feedback top bar,
+using the unchanged Chromium QA workflow and original demo inputs/dimensions.
+Their checksums and provenance are updated. Image 03 remains byte-for-byte
+unchanged; its visible scrolled chart content remains accurate. Email-client behavior/delivery and live production remain untested;
 no real email was sent.

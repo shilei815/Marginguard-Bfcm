@@ -13,7 +13,8 @@ npm run build
 CHROMIUM_NO_SANDBOX=1 npm run test:browser
 cp work/browser-qa/simple-1440.png docs/launch-assets/01-simple-demo.png
 cp work/browser-qa/comparison-1440.png docs/launch-assets/02-demo-comparison.png
-cp work/browser-qa/launch-advanced-frontier.png docs/launch-assets/03-advanced-demo.png
+# Stage 4A.2 refreshes only 01 and 02. Preserve existing 03-advanced-demo.png.
+# Original 03 source: work/browser-qa/launch-advanced-frontier.png
 ```
 
 Use no-sandbox only in an appropriate disposable container. The existing QA
@@ -35,8 +36,26 @@ physical-device rendering and production-host behavior require owner review.
 See `../PRODUCT_HUNT_LAUNCH.md` for copy and release gates. The owner-approved public address is now configured as miniventurelab@gmail.com;
 manual email-client/delivery verification remains pending.
 
-Stage 4A.1 preserves these original images and checksums. Image 01 shows the
-older Simple top bar without the new Feedback entry; an owner-approved recapture
-is recommended before publication. Image 02 also contains that older Simple top
-bar. Image 03 is scrolled to the Advanced chart and its visible content remains
-accurate. No gallery image was silently replaced.
+## Stage 4A.2 approved refresh
+
+Images 01 and 02 were recaptured from application commit
+`aafc999f9c78c27c12574e120e73484486a7548a` with the unchanged browser QA workflow.
+Both show the actual Feedback entry in the Simple top bar. Original 1440 × 1000
+pixel dimensions, 100% zoom, fictional demo inputs, tier setup and genuine chart
+outputs are preserved. No retouching, chart edits or generated UI images.
+
+Image 03 remains byte-for-byte unchanged: its visible scrolled chart content is
+still accurate. Its original SHA-256 is
+`a54a011ae58c5bb0f8a184fb9318c54a876740922cff47bbb4a5b088f003299c`.
+The refreshed images and all three checksums are recorded in `SHA256SUMS`.
+
+Owner review of the gallery, manual email-client/delivery verification, release
+approval, production smoke testing and Product Hunt publication remain pending.
+
+Refresh validation: `npm test` passed 263 tests in 15 files; `npm run build`
+passed; the unchanged Chromium browser workflow passed 139 layout/state checks
+at eight widths (320–1920px), with no runtime errors or external page requests.
+Both refreshed images were visually inspected for Feedback visibility, matching
+dimensions and genuine demo output. All screenshot checksums validate. Application
+source, financial logic, browser workflow, configuration and dependencies are
+unchanged from the captured application commit.
