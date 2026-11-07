@@ -1991,3 +1991,9 @@ td small,
 /* Put the SVG's metric heading in its own reserved space above the plot. */
 .simple-chart svg { margin-top: 2rem; overflow: visible; }
 .simple-chart svg > text[y="17"] { transform: translateY(-24px); }
+
+/* Compact native disclosures shared by both planning modes. */
+.launch-help { margin-top: 24px; }
+.launch-help details { margin: 12px 0; }
+.launch-help p { line-height: 1.6; overflow-wrap: anywhere; }
+.launch-help a { color: #08745e; text-decoration: underline; }

@@ -1,3 +1,4 @@
+import LaunchHelp from "./LaunchHelp";
 import { useState } from "react";
 import {
   portfolio,
@@ -597,6 +598,7 @@ export default function MerchantView(p: MerchantProps) {
               See how your promotions affect profit, protect important products,
               and find better discount plans.
             </p>
+            {p.campaign.demo && <p>A fictional demo is already loaded — try the workflow without uploading a file.</p>}
           </div>
         </div>
         <nav className="step-nav">
@@ -1163,6 +1165,7 @@ export default function MerchantView(p: MerchantProps) {
             </button>
           </div>
         </section>
+        <LaunchHelp />
         <footer>
           MarginGuard{" "}
           <span>

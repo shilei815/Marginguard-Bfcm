@@ -318,6 +318,14 @@ try {
     const activeSite = JSON.parse(await readFile(resolve(root, "config/site.json"), "utf8"));
     const head = await evaluate("({canonical:document.querySelector('link[rel=canonical]')?.href,og:document.querySelector('meta[property=\"og:url\"]')?.content,twitter:document.querySelector('meta[name=\"twitter:url\"]')?.content,name:document.querySelector('meta[property=\"og:site_name\"]')?.content,description:document.querySelector('meta[name=description]')?.content})");
     assert.deepEqual(head, { canonical: activeSite.productionOrigin + "/", og: activeSite.productionOrigin + "/", twitter: activeSite.productionOrigin + "/", name: activeSite.name, description: activeSite.description });
+    assert(await evaluate("document.body.textContent.includes('A fictional demo is already loaded')"));
+    assert.equal(await evaluate("document.querySelectorAll('.launch-help details > summary').length"), 5);
+    assert.equal(await evaluate("document.querySelectorAll('a[href^=\"mailto:\"]').length"), 0);
+    await evaluate("document.querySelector('.launch-help summary').focus()");
+    await key("Enter", "Enter", 13);
+    assert(await evaluate("document.querySelector('.launch-help details').open"));
+    await key("Enter", "Enter", 13);
+    assert(await evaluate("!document.querySelector('.launch-help details').open"));
     await fit(width, "Simple", "default");
     if (width === 375 || width === 1440) await screenshot(`simple-${width}`);
     await evaluate(
@@ -363,6 +371,7 @@ try {
     await fit(width, "Simple", "suggestion");
     if (width === 375 || width === 1440) {
       await evaluate("document.querySelector('.simple-chart').scrollIntoView()");
+      await evaluate("window.scrollBy(0,-90)");
       await screenshot(`comparison-${width}`, false);
     }
     if (width === 375 || width === 1440) {
@@ -412,10 +421,16 @@ try {
       "document.querySelectorAll('details').forEach(e=>e.open=true)",
     );
     await frame();
+    assert.equal(await evaluate("document.querySelectorAll('.launch-help details > summary').length"), 5);
+    assert(await evaluate("document.querySelector('.launch-help').textContent.includes('Send Feedback')"));
     await fit(width, "Advanced", "all-details-expanded");
     await button("Optimize");
     await fit(width, "Advanced", "optimized");
     if (width === 375 || width === 1440) await screenshot(`advanced-${width}`);
+    if (width === 1440) {
+      await evaluate("document.querySelector('.chart-panel').scrollIntoView();window.scrollBy(0,-90)");
+      await screenshot("launch-advanced-frontier", false);
+    }
     await input("Contribution profit floor (USD)", 1000000);
     await fit(width, "Advanced", "infeasible");
     assert(await evaluate("!!document.querySelector('.diagnostic-summary')"));
@@ -497,6 +512,12 @@ try {
       ),
     );
     await fit(width, "Advanced", "unified-state-cost-confirmation");
+    await button("Load demo");
+    assert(await evaluate("document.body.textContent.includes('Synthetic demo · 30 fictional SKUs')"));
+    await button("Simple Mode");
+    assert(await evaluate("document.body.textContent.includes('A fictional demo is already loaded')"));
+    assert.equal(await evaluate("document.querySelector('.merchant-cards').textContent.includes('Estimated')"), false);
+    await fit(width, "Simple", "demo-reset");
   }
   report.checks.push(
     "Unified native product import, cost presence/confirmation and atomic rollback verified at all six widths. Both modes fit all 6 requested viewport widths, including expanded disclosures, suggestions, allocations, infeasible goals and mobile navigation.",
