@@ -1,3 +1,4 @@
+import LaunchHelp from "./LaunchHelp";
 import { useMemo, useState, useRef } from "react";
 import MerchantView, { RuleEditor } from "./MerchantView";
 import { initialGoal, parsePromotionCSV, type PromotionRule } from "./planner";
@@ -568,6 +569,7 @@ export default function App() {
       <main>
         <header className="topbar">
           <div className="actions">
+            <a href="#help-feedback" onClick={() => setMobileNavOpen(false)}>Feedback</a>
             <button
               onClick={() => {
                 setAdvanced(false);
@@ -1471,6 +1473,7 @@ export default function App() {
               </div>
             </div>
           </section>
+          <LaunchHelp />
           <footer>
             MarginGuard{" "}
             <span>Built for better discount decisions. · Phase 2D</span>
