@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Preparation metadata only: not a Wrangler configuration or deployment script",
+  "intendedProject": "marginguard-bfcm",
+  "intendedBranch": "redirect-validation-302",
+  "productionBranch": "main",
+  "sourceHostname": "marginguard-bfcm.pages.dev",
+  "targetOrigin": "https://marginguard.pages.dev",
+  "outputDirectory": "ops/legacy-redirect/preview-302/site",
+  "status": 302,
+  "productionPackageBase": "61dc8cf7d9619903579f51c3059d1cd76c3c28a6"
+}

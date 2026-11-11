@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Isolated legacy Pages redirect preparation, not an npm deployment script",
+  "intendedProject": "marginguard-bfcm",
+  "intendedBranch": "main",
+  "sourceHostname": "marginguard-bfcm.pages.dev",
+  "targetOrigin": "https://marginguard.pages.dev",
+  "outputDirectory": "ops/legacy-redirect/site",
+  "approvedApplicationBase": "69f91e492e371dc4ca23f0d9b3d0c3c847e98696"
+}
